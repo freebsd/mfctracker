@@ -5,6 +5,11 @@ class Branch(models.Model):
     name = models.CharField(max_length=30, unique=True)
     path = models.CharField(max_length=128, unique=True)
 
+    @classmethod
+    def create(cls, name, path):
+        obj = cls(name=name, path=path)
+        return obj
+
 class Commit(models.Model):
     """Single commit info"""
     revision = models.IntegerField(unique=True)
