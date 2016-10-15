@@ -96,3 +96,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+SVN_BASE_URL = 'http://svn.freebsd.org/base'

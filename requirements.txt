@@ -1,1 +1,3 @@
-Django
+Django==1.10
+svn==0.3.44
+jsonfield
