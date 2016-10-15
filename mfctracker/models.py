@@ -16,6 +16,10 @@ class Branch(models.Model):
         obj = cls(name=name, path=path)
         return obj
 
+    @classmethod
+    def head(cls):
+        return cls.objects.get(name='HEAD')
+
 class Commit(models.Model):
     """Single commit info"""
     revision = models.IntegerField(primary_key=True)

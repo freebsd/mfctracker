@@ -1,0 +1,10 @@
+<h1>Revisions</h1>
+<table>
+    {% for commit in commits %}
+        <tr>
+            <td>r{{ commit.revision }}</td>
+            <td>{{ commit.author }}</td>
+            <td>{{ commit.date }}</td>
+        </tr>
+    {% endfor %}
+</table>
