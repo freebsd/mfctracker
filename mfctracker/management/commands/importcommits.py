@@ -2,9 +2,9 @@ import svn.remote
 import json
 
 from django.core.management.base import BaseCommand, CommandError
-from mfctracker.models import Commit, Branch
-
 from django.conf import settings
+
+from mfctracker.models import Commit, Branch
 
 def mergeinfo_ranges_to_set(mergeinfo_ranges):
     """Convert compact ranges representation to python set object"""
