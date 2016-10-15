@@ -56,6 +56,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         revision = options['start_revision']
         branch = options['branch']
+        limit = options['limit']
 
         if branch is None:
             branches = list(Branch.objects.all())
@@ -66,9 +67,12 @@ class Command(BaseCommand):
 
 
         for b in branches:
+            if revision < 0:
+                revision = b.last_revision
+            # Do not go behind first commit to the branch
             revision = max(revision, b.branch_revision)
             self.stdout.write('Importing commits for branch %s, starting with r%d' % (b.name, revision))
-            log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision)))
+            log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision, limit=limit)))
             branch_commits = 0
             last_revision = 0
             for entry in log_entries:
@@ -76,7 +80,7 @@ class Command(BaseCommand):
                 commit.branch = b
                 commit.save()
                 branch_commits += 1
-                last_revision = entry.revision
+                last_revision = max(last_revision, entry.revision)
 
             if branch_commits:
                 self.stdout.write('Imported {} commits, last revision is {}'.format(branch_commits, last_revision))
