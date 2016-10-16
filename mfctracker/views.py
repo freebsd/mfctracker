@@ -81,8 +81,10 @@ def branch(request, branch_id):
 
     if filter_waiting:
         context['waiting_checked'] = 'checked'
+        context['waiting_active'] = 'active'
 
     if filter_ready:
         context['ready_checked'] = 'checked'
+        context['ready_active'] = 'active'
 
     return HttpResponse(template.render(context, request))
