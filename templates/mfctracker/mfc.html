@@ -8,6 +8,35 @@
 {% bootstrap_javascript jquery=1 %}
 {% bootstrap_css %}
 <link rel="stylesheet" type="text/css" href="{% static "mfctracker.css" %}" />
+<script src="{% static "csrf.js" %}"></script>
+<script src="{% static "mfctracker.js" %}"></script>
+<script>
+function SelectText(text) {
+    var doc = document
+        , range, selection
+    ;    
+    if (doc.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(text);
+        range.select();
+    } else if (window.getSelection) {
+        selection = window.getSelection();        
+        range = document.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+
+$( document ).ready(function() {
+    $(".select").each(function(index, element) {
+		console.log(element);
+		$(element).click(function() {
+			SelectText($($(element).attr("target"))[0]);
+		});
+	});
+});
+</script>
 
 </head>
 <body>
@@ -18,12 +47,15 @@
           </div>
       </div>
       <div class="row">
-          <h3>Command</h3>
-          <pre>{{ commit_command }}</pre>
+          <h3>Command
+    <a role="button" target="#commit_cmd" class="btn btn-default select"> <i class="glyphicon glyphicon-copy"></i></a>
+          </h3>
+          <pre id="commit_cmd">{{ commit_command }}</pre>
       </div>
       <div class="row">
-          <h3>Commit message</h3>
-          <pre>{{ commit_msg }}</pre>
+          <h3>Commit message
+    <a role="button" target="#commit_msg" class="btn btn-default select"> <i class="glyphicon glyphicon-copy"></i></a></h3>
+          <pre id="commit_msg">{{ commit_msg }}</pre>
       </div>
 </div>
 </body
