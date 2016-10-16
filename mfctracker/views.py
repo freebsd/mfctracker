@@ -1,4 +1,4 @@
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.template import loader
 
@@ -7,7 +7,12 @@ from .models import Branch, Commit
 def index(request):
     template = loader.get_template('mfctracker/index.html')
     head = Branch.head()
-    all_commits = head.commit_set.order_by('-revision')
+    query = head.commit_set
+    author = request.GET.get('author', None)
+    if author:
+        query = query.filter(author=author)
+
+    all_commits = query.order_by('-revision')
     paginator = Paginator(all_commits, 15)
 
     page = request.GET.get('page')
