@@ -10,23 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+import os.path as op
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'o4c6#^(x44smd70-4=yghiguu25m^89bmtsufxqpn-!e(gqoy8'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+BASE_DIR = op.abspath(op.join(__file__, op.pardir, op.pardir, op.pardir))
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -67,18 +57,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mfctracker.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -92,13 +70,12 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    op.join(BASE_DIR, "static"),
 ]
 
 SVN_BASE_URL = 'http://svn.freebsd.org/base'
