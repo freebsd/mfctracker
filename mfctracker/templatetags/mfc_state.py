@@ -1,4 +1,5 @@
 import urllib
+from datetime import date
 
 from django import template
 
@@ -9,6 +10,10 @@ def mfc_state(commit, branch):
     if commit.merged_to.filter(pk=branch.pk).exists():
         return "done"
 
-    # TODO: check mfc_after field here
+    if commit.mfc_after is None:
+        return "no"
 
-    return "no"
+    if commit.mfc_after <= date.today():
+        return "ready"
+
+    return "wait"
