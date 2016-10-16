@@ -9,6 +9,8 @@
 {% bootstrap_javascript jquery=1 %}
 {% bootstrap_css %}
 <link rel="stylesheet" type="text/css" href="{% static "mfctracker.css" %}" />
+<script src="{% static "csrf.js" %}"></script>
+<script src="{% static "mfctracker.js" %}"></script>
 
 </head>
 <body>
@@ -25,9 +27,10 @@
             {% endfor %}
           </ul>
         </li>
-        <li><a href="{% url 'mfchelper' branch_id=current_branch.pk %}">Commits <span class="badge" id="mfccount">42</span></a></li>
+        <li><a href="{% url 'mfchelper' branch_id=current_branch.pk %}">MFC Basket <span class="badge" id="mfccount">0</span></a></li>
       </ul>
       <form class="navbar-form navbar-right" action="{% url 'setfilter' branch_id=current_branch.pk %}">
+        {% csrf_token %}
         <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-primary {{ waiting_active }}">
             <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}>Waiting
@@ -54,11 +57,14 @@
       <div class="row">
         <table class="table" id="commits">
             {% for commit in commits %}
-                <tr class="mfc{{ commit | mfc_state:current_branch }}">
+                    <tr class="mfc{{ commit | mfc_state:current_branch }}" revision="{{ commit.revision }}">
                     <td class="col-sm-1">r{{ commit.revision }}</td>
                     <td class="col-sm-1">{{ commit.author }}</td>
                     <td class="col-sm-2">{{ commit.date }}</td>
-                    <td class="col-sm-8">{{ commit.summary }}</td>
+                    <td class="col-sm-7">{{ commit.summary }}</td>
+                    <td class="col-sm-1 text-right"><button type="button" class="btn btn-default hide" aria-label="Add" id="action">
+                      <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </button></td>
                 </tr>
             {% endfor %}
         </table>

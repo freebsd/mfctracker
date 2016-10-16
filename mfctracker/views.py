@@ -2,7 +2,8 @@ from datetime import date
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_POST
 from django.template import loader
 from django.shortcuts import redirect, get_object_or_404
 
@@ -92,7 +93,7 @@ def branch(request, branch_id):
 def mfchelper(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
     template = loader.get_template('mfctracker/mfc.html')
-    revisions = [306357, 306356, 306355]
+    revisions = request.session.get('basket', [])
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     str_revisions = map(lambda x: 'r' + str(x), revisions)
@@ -114,3 +115,49 @@ def mfchelper(request, branch_id):
     context['commit_command'] = commit_command
 
     return HttpResponse(template.render(context, request))
+
+# MFC basket API
+def basket(request):
+    current_basket = request.session.get('basket', [])
+    return JsonResponse({'basket': current_basket})
+
+@require_POST
+def addrevision(request):
+    current_basket = request.session.get('basket', [])
+    revision = request.POST.get('revision', None)
+    if not revision:
+        return HttpResponseBadRequest()
+    try:
+        revision = int(revision)
+    except ValueError:
+        return HttpResponseBadRequest()
+
+    if not revision in current_basket:
+        current_basket.append(revision)
+        request.session['basket'] = current_basket
+
+    return JsonResponse({'basket': current_basket})
+
+@require_POST
+def delrevision(request):
+    current_basket = request.session.get('basket', [])
+    revision = request.POST.get('revision', None)
+    if not revision:
+        return HttpResponseBadRequest()
+    try:
+        revision = int(revision)
+    except ValueError:
+        return HttpResponseBadRequest()
+
+    if revision in current_basket:
+        current_basket.remove(revision)
+        request.session['basket'] = current_basket
+
+    return JsonResponse({'basket': current_basket})
+
+@require_POST
+def clearbasket(request):
+    current_basket = []
+    request.session['basket'] = current_basket
+
+    return JsonResponse({'basket': current_basket})
