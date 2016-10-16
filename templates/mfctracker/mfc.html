@@ -1,0 +1,30 @@
+{% load static %}
+{% load bootstrap3 %}
+
+<html>
+<head>
+
+{# Load CSS and JavaScript #}
+{% bootstrap_javascript jquery=1 %}
+{% bootstrap_css %}
+<link rel="stylesheet" type="text/css" href="{% static "mfctracker.css" %}" />
+
+</head>
+<body>
+<div class="container-fluid">
+      <div class="row">
+          <div class="col-md-12 text-center">
+              MFC helper
+          </div>
+      </div>
+      <div class="row">
+          <h3>Command</h3>
+          <pre>{{ commit_command }}</pre>
+      </div>
+      <div class="row">
+          <h3>Commit message</h3>
+          <pre>{{ commit_msg }}</pre>
+      </div>
+</div>
+</body
+</html>

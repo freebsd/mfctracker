@@ -88,3 +88,29 @@ def branch(request, branch_id):
         context['ready_active'] = 'active'
 
     return HttpResponse(template.render(context, request))
+
+def mfchelper(request, branch_id):
+    current_branch = get_object_or_404(Branch, pk=branch_id)
+    template = loader.get_template('mfctracker/mfc.html')
+    revisions = [306357, 306356, 306355]
+    revisions.sort()
+    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    str_revisions = map(lambda x: 'r' + str(x), revisions)
+    commit_msg = 'MFC ' + ', '.join(str_revisions) + ': \n'
+    for commit in commits:
+        if len(revisions) > 1:
+            commit_msg = commit_msg + '\nr' + str(commit.revision) + ':'
+        commit_msg = commit_msg + '\n' + commit.msg
+        commit_msg = commit_msg.strip() + '\n'
+
+    context = {}
+    merge_revisions = map(lambda x: '-c r' + str(x), revisions)
+    commit_command = 'svn merge '
+    commit_command += ' '.join(merge_revisions)
+    commit_command += ' ^/head/'
+    path = current_branch.path.strip('/')
+    commit_command += ' ' + path
+    context['commit_msg'] = commit_msg
+    context['commit_command'] = commit_command
+
+    return HttpResponse(template.render(context, request))
