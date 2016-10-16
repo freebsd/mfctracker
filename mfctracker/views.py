@@ -9,6 +9,33 @@ from django.shortcuts import redirect, get_object_or_404
 
 from .models import Branch, Commit
 
+def svn_range_to_arg(start, end):
+    if start == end:
+        return '-c r{}'.format(start)
+    else:
+        return '-r {}:{}'.format(start - 1, end)
+
+def svn_revisions_arg(revisions):
+    args = []
+
+    if len(revisions) == 0:
+        return args
+
+    range_start = revisions[0]
+    range_end = revisions[0]
+
+    i = 1
+    while i < len(revisions):
+        if revisions[i] - 1 == range_end:
+            range_end = revisions[i]
+        else:
+            args.append(svn_range_to_arg(range_start, range_end))
+            range_start = range_end = revisions[i]
+        i += 1
+
+    args.append(svn_range_to_arg(range_start, range_end))
+    return args
+
 def index(request):
     default_pk = request.session.get('branch', None)
     if default_pk is None:
@@ -105,7 +132,7 @@ def mfchelper(request, branch_id):
         commit_msg = commit_msg.strip() + '\n'
 
     context = {}
-    merge_revisions = map(lambda x: '-c r' + str(x), revisions)
+    merge_revisions = svn_revisions_arg(revisions)
     commit_command = 'svn merge '
     commit_command += ' '.join(merge_revisions)
     commit_command += ' ^/head/'
