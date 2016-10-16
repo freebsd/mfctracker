@@ -1,0 +1,36 @@
+body {
+    padding: 20px; 
+};
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    position: relative;
+    padding: 5px 10px;
+}
+
+tr.mfcdone td:before {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    border-bottom: 1px solid #ccc;
+    width: 100%;
+}
+
+.table>tbody>tr.mfcdone>td, 
+.table>tbody>tr.mfcdone>th {
+   color: #ccc;
+}
+
+.table>tbody>tr.mfcready>td, 
+.table>tbody>tr.mfcready>th {
+   background-color: #00c851;
+}
+
+.table>tbody>tr.mfcwait>td, 
+.table>tbody>tr.mfcwait>th {
+   background-color: #33b5e5;
+}

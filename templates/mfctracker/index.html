@@ -1,17 +1,14 @@
+{% load static %}
 {% load bootstrap3 %}
+{% load mfc_state %}
 
 <html>
 <head>
 
 {# Load CSS and JavaScript #}
-{% bootstrap_css %}
 {% bootstrap_javascript jquery=1 %}
-
-<style>
-body {
-    padding: 20px; 
-}
-</style>
+{% bootstrap_css %}
+<link rel="stylesheet" type="text/css" href="{% static "mfctracker.css" %}" />
 
 </head>
 <body>
@@ -48,10 +45,11 @@ body {
       <div class="row">
         <table class="table">
             {% for commit in commits %}
-                <tr>
+                <tr class="mfc{{ commit | mfc_state:current_branch }}">
                     <td>r{{ commit.revision }}</td>
                     <td>{{ commit.author }}</td>
                     <td>{{ commit.date }}</td>
+                    <td>{{ commit | mfc_state:current_branch }}</td>
                 </tr>
             {% endfor %}
         </table>
