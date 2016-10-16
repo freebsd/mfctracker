@@ -4,7 +4,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-SECRET_KEY = open(os.path.expanduser('~/.mfctracker-django-secret')).read().strip()
+
+# One level above app directory
+key_path = os.path.join(os.path.dirname(BASE_DIR), '.mfctracker-django-secret')
+SECRET_KEY = open(key_path).read().strip()
 
 DATABASES = {
     'default': {
