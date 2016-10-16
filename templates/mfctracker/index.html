@@ -1,10 +1,29 @@
-<h1>Revisions</h1>
-<table>
-    {% for commit in commits %}
-        <tr>
-            <td>r{{ commit.revision }}</td>
-            <td>{{ commit.author }}</td>
-            <td>{{ commit.date }}</td>
-        </tr>
-    {% endfor %}
-</table>
+{% load bootstrap3 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<div class="container-fluid">
+      <div class="row">
+          <div class="col-md-12 text-center">
+            <h1>Revisions</h1>
+          </div>
+      </div>
+      <div class="row">
+        <table class="table">
+            {% for commit in commits %}
+                <tr>
+                    <td>r{{ commit.revision }}</td>
+                    <td>{{ commit.author }}</td>
+                    <td>{{ commit.date }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+      </div>
+      <div class="row">
+          <div class="col-md-12 text-center">
+            {% bootstrap_pagination commits %}
+          </div>
+      </div>
+</div>
