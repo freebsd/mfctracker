@@ -1,13 +1,49 @@
 {% load bootstrap3 %}
 
+<html>
+<head>
+
 {# Load CSS and JavaScript #}
 {% bootstrap_css %}
-{% bootstrap_javascript %}
+{% bootstrap_javascript jquery=1 %}
+
+<style>
+body {
+    padding: 20px; 
+}
+</style>
+
+</head>
+<body>
+
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ current_branch.name }}<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            {% for branch in branches %}
+            <li><a href="#">{{ branch.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
+      <form class="navbar-form navbar-right">
+        <div class="form-group">
+          <input type="text" class="form-control" name="author" placeholder="Committer">
+          <input type="hidden" name="page" value="{{ commits.number }}">
+        </div>
+        <button type="submit" class="btn btn-default">Filter</button>
+      </form>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
 
 <div class="container-fluid">
       <div class="row">
           <div class="col-md-12 text-center">
-            <h1>Revisions</h1>
           </div>
       </div>
       <div class="row">
@@ -27,3 +63,5 @@
           </div>
       </div>
 </div>
+</body
+</html>
