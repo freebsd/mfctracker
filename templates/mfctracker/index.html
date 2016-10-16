@@ -25,6 +25,7 @@
             {% endfor %}
           </ul>
         </li>
+        <li><a href="{% url 'mfchelper' branch_id=current_branch.pk %}">Commits <span class="badge" id="mfccount">42</span></a></li>
       </ul>
       <form class="navbar-form navbar-right" action="{% url 'setfilter' branch_id=current_branch.pk %}">
         <div class="btn-group" data-toggle="buttons">
