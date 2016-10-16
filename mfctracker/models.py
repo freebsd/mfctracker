@@ -34,3 +34,11 @@ class Commit(models.Model):
     def create(cls, revision, author, date, msg):
         commit = cls(revision=revision, author=author, date=date, msg=msg)
         return commit
+
+    @property
+    def summary(self):
+        msg = self.msg.strip()
+        eol = msg.find('\n')
+        if eol >= 0:
+            return  msg[0:eol]
+        return msg

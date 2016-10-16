@@ -34,3 +34,13 @@ tr.mfcdone td:before {
 .table>tbody>tr.mfcwait>th {
    background-color: #33b5e5;
 }
+
+.table {
+  table-layout:fixed;
+}
+
+.table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
