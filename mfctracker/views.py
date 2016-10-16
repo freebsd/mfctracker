@@ -20,7 +20,7 @@ def branch(request, branch_id):
     template = loader.get_template('mfctracker/index.html')
     head = Branch.head()
     branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
-    query = head.commit_set
+    query = head.commit_set.filter(revision__gt=current_branch.branch_revision)
 
     author = request.GET.get('author', None)
     if author is None:
