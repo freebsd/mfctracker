@@ -49,6 +49,9 @@ def branch(request, branch_id):
     if filter_waiting:
         q = q | Q(mfc_after__gt=date.today())
 
+    if filter_waiting or filter_ready:
+       q = q & ~Q(merged_to__pk__contains=current_branch.pk)
+
     query = query.filter(q)
 
     all_commits = query.order_by('-revision')
