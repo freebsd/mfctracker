@@ -7,20 +7,31 @@ from django.shortcuts import redirect, get_object_or_404
 from .models import Branch, Commit
 
 def index(request):
-    branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
-    default_pk = branches[0].pk
+    default_pk = request.session.get('branch', None)
+    if default_pk is None:
+        branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
+        default_pk = branches[0].pk
     return redirect('branch', branch_id=default_pk)
 
 def branch(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
+    request.session['branch'] = branch_id
 
     template = loader.get_template('mfctracker/index.html')
     head = Branch.head()
     branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
     query = head.commit_set
+
     author = request.GET.get('author', None)
+    if author is None:
+        author = request.session.get('author', None)
+    else:
+        request.session['author'] = author
+
     if author:
         query = query.filter(author=author)
+    else:
+        author = ''
 
     all_commits = query.order_by('-revision')
     paginator = Paginator(all_commits, 15)
