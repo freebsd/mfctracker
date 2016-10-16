@@ -25,7 +25,7 @@ body {
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ current_branch.name }}<span class="caret"></span></a>
           <ul class="dropdown-menu">
             {% for branch in branches %}
-            <li><a href="#">{{ branch.name }}</a></li>
+            <li><a href="{% url 'branch' branch_id=branch.pk %}">{{ branch.name }}</a></li>
             {% endfor %}
           </ul>
         </li>
