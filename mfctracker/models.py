@@ -25,7 +25,7 @@ class Commit(models.Model):
     revision = models.IntegerField(primary_key=True)
     author = models.CharField(max_length=30)
     date = models.DateTimeField()
-    mfc_after = models.DateTimeField(blank=True, null=True)
+    mfc_after = models.DateField(blank=True, null=True)
     msg = models.TextField() 
     merged_to = models.ManyToManyField(Branch, blank=True, related_name='merges')
     branch = models.ForeignKey(Branch, null=True, on_delete=models.SET_NULL)

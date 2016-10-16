@@ -1,5 +1,9 @@
 import svn.remote
 import json
+import parsedatetime
+import time
+import re
+from datetime import date
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -65,7 +69,6 @@ class Command(BaseCommand):
 
         r = svn.remote.RemoteClient(settings.SVN_BASE_URL)
 
-
         for b in branches:
             if revision < 0:
                 revision = b.last_revision
@@ -78,6 +81,7 @@ class Command(BaseCommand):
             for entry in log_entries:
                 commit = Commit.create(entry.revision, entry.author, entry.date, entry.msg)
                 commit.branch = b
+                commit.mfc_after = self.parse_mfc_entry(entry.msg, entry.date)
                 commit.save()
                 branch_commits += 1
                 last_revision = max(last_revision, entry.revision)
@@ -114,3 +118,19 @@ class Command(BaseCommand):
                 commit.save()
                 new_merged_commits += 1
             self.stdout.write('{} commits marked as merged to {}'.format(new_merged_commits, b.name))
+
+    def parse_mfc_entry(self, msg, commit_date):
+        lines = msg.split('\n')
+        for line in lines:
+            if re.match('^\s*mfc\s+after\s*:', line, flags=re.IGNORECASE):
+                calendar = parsedatetime.Calendar()
+                mfc_after_st, parsed = calendar.parse(line, commit_date)
+                if parsed:
+                    mfc_after = date.fromtimestamp(time.mktime(mfc_after_st))
+                    return mfc_after
+                else:
+                    self.stdout.write(self.style.ERROR('Failed to pare MFC line: \'{}\''.format(line)))
+
+        return None
+
+
