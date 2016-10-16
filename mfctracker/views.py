@@ -140,6 +140,7 @@ def mfchelper(request, branch_id):
     commit_command += ' ' + path
     context['commit_msg'] = commit_msg
     context['commit_command'] = commit_command
+    context['empty'] = len(revisions) == 0
 
     return HttpResponse(template.render(context, request))
 

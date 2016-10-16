@@ -77,7 +77,7 @@ $( document ).ready(function() {
       </ul>
       <form class="navbar-form navbar-right" action="/">
         {% csrf_token %}
-        <a role="button" class="btn btn-danger" id="clearmfc">Clear</a>
+        <a role="button" class="btn btn-danger {% if empty %}disabled{% endif %}" id="clearmfc">Clear</a>
       </form>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
@@ -85,6 +85,12 @@ $( document ).ready(function() {
 
 
 <div class="container-fluid">
+{% if empty %}
+      <div class="row text-center">
+          <h2>No MFC commits</h2>
+      </div>
+
+{% else %}
       <div class="row">
           <h3>Command
     <a role="button" target="#commit_cmd" class="btn btn-default select" data-toggle="tooltip" data-placement="right" title="Click and then press Ctrl+C"> <i class="glyphicon glyphicon-copy"></i></a> 
@@ -96,6 +102,7 @@ $( document ).ready(function() {
     <a role="button" target="#commit_msg" class="btn btn-default select" data-toggle="tooltip" data-placement="right" title="Click and then press Ctrl+C"> <i class="glyphicon glyphicon-copy"></i></a></h3>
           <pre id="commit_msg">{{ commit_msg }}</pre>
       </div>
+{% endif %}
 </div>
 </body
 </html>
