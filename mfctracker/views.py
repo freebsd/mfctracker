@@ -35,5 +35,10 @@ def branch(request, branch_id):
         # If page is out of range (e.g. 9999), deliver last page of results.
         commits = paginator.page(paginator.num_pages)
 
-    context = {'commits': commits, 'branches': branches, 'current_branch': current_branch }
+    context = {}
+    context['commits'] = commits
+    context['branches'] = branches
+    context['current_branch'] = current_branch
+    context['author'] = author
+
     return HttpResponse(template.render(context, request))
