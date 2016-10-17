@@ -11,15 +11,6 @@ td {
     padding: 5px 10px;
 }
 
-tr.mfcdone td:before {
-    content: " ";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    border-bottom: 1px solid #ccc;
-    width: 100%;
-}
-
 .table>tbody>tr.mfcdone>td, 
 .table>tbody>tr.mfcdone>th {
    color: #ccc;
