@@ -79,3 +79,4 @@ STATICFILES_DIRS = [
 ]
 
 SVN_BASE_URL = 'http://svn.freebsd.org/base'
+VIEWVC_REVISION_URL = 'http://svnweb.freebsd.org/changeset/base/{revision}'

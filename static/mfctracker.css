@@ -35,3 +35,11 @@ td {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.summary:hover {
+    text-decoration: underline;
+}
+
+.summary {
+    cursor: pointer;
+}

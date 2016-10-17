@@ -22,14 +22,14 @@ MFC.setupCommitActionButtons = function() {
 		if (MFC.basket.includes(revision)) {
 			$(icon).removeClass('glyphicon-plus');
 			$(icon).addClass('glyphicon-minus');
-			$(action).click(function() {
+			$(action).off("click").click(function(e) {
 				MFC.delRevision(revision);
 			});
 		}
 		else {
 			$(icon).addClass('glyphicon-plus');
 			$(icon).removeClass('glyphicon-minus');
-			$(action).click(function() {
+			$(action).off("click").click(function(e) {
 				MFC.addRevision(revision);
 			});
 		}
@@ -55,6 +55,4 @@ MFC.fetchBasket = function() {
 	});
 };
 
-$( document ).ready(function() {
-	MFC.fetchBasket();
-});
+
