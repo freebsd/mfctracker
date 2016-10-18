@@ -15,6 +15,7 @@
 <script>
 $( document ).ready(function() {
 	MFC.fetchBasket();
+
     $(".summary").click(function() {
 		var tr = $(this).closest("#commits tr");
         var revision = $(tr).attr("revision");
@@ -64,11 +65,14 @@ $( document ).ready(function() {
       <form class="navbar-form navbar-right" action="{% url 'setfilter' branch_id=current_branch.pk %}">
         {% csrf_token %}
         <div class="btn-group" data-toggle="buttons">
-        <label class="btn btn-primary {{ waiting_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}>Waiting
+        <label class="btn btn-primary filter {{ waiting_active }}">
+            <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}><span class="glyphicon glyphicon-ok"></span>
         </label>
-        <label class="btn btn-success {{ ready_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_ready" {{ ready_checked }}>Ready
+        <label class="btn btn-success filter {{ ready_active }}">
+            <input type="checkbox" autocomplete="off" name="filter_ready" {{ ready_checked }}><span class="glyphicon glyphicon-ok"></span>
+        </label>
+        <label class="btn btn-default filter {{ other_active }}">
+            <input type="checkbox" autocomplete="off" name="filter_other" {{ other_checked }}><span class="glyphicon glyphicon-ok"></span>
         </label>
         </div>
         <div class="form-group">

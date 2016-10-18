@@ -45,3 +45,11 @@ td {
 .summary {
     cursor: pointer;
 }
+
+.filter span.glyphicon {
+    opacity: 0;
+}
+
+.filter.active span.glyphicon {
+    opacity: 1;
+}

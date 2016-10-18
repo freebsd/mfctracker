@@ -48,9 +48,11 @@ def setfilter(request, branch_id):
     author = request.GET.get('author', None)
     filter_waiting = request.GET.get('filter_waiting', None)
     filter_ready = request.GET.get('filter_ready', None)
+    filter_other = request.GET.get('filter_other', None)
     request.session['author'] = author
     request.session['filter_waiting'] = filter_waiting is not None
     request.session['filter_ready'] = filter_ready is not None
+    request.session['filter_other'] = filter_other is not None
 
     return redirect('branch', branch_id=branch_id)
 
@@ -66,6 +68,7 @@ def branch(request, branch_id):
     author = request.session.get('author', None)
     filter_waiting = request.session.get('filter_waiting', False)
     filter_ready = request.session.get('filter_ready', False)
+    filter_other = request.session.get('filter_other', False)
 
     if author:
         query = query.filter(author=author)
@@ -73,12 +76,17 @@ def branch(request, branch_id):
         author = ''
 
     q = Q()
+
     if filter_ready:
         q  = q | Q(mfc_after__lte=date.today())
+
     if filter_waiting:
         q = q | Q(mfc_after__gt=date.today())
 
-    if filter_waiting or filter_ready:
+    if filter_other:
+        q = q | Q(mfc_after__isnull=True)
+
+    if filter_waiting or filter_ready or filter_other:
        q = q & ~Q(merged_to__pk__contains=current_branch.pk)
 
     query = query.filter(q)
@@ -115,6 +123,10 @@ def branch(request, branch_id):
     if filter_ready:
         context['ready_checked'] = 'checked'
         context['ready_active'] = 'active'
+
+    if filter_other:
+        context['other_checked'] = 'checked'
+        context['other_active'] = 'active'
 
     return HttpResponse(template.render(context, request))
 
