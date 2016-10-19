@@ -5,6 +5,7 @@ class Branch(models.Model):
     """Branch info"""
     name = models.CharField(max_length=30, unique=True)
     path = models.CharField(max_length=128, unique=True)
+    is_trunk = models.BooleanField(default=False)
     mergeinfo = jsonfield.JSONField(default={})
     # Last imported revision
     last_revision = models.IntegerField(default=1)
@@ -17,8 +18,12 @@ class Branch(models.Model):
         return obj
 
     @classmethod
-    def head(cls):
-        return cls.objects.get(name='HEAD')
+    def trunk(cls):
+        return cls.objects.get(is_trunk=True)
+
+    @classmethod
+    def maintenance(cls):
+        return cls.objects.filter(is_trunk=False)
 
 class Commit(models.Model):
     """Single commit info"""

@@ -40,7 +40,7 @@ def svn_revisions_arg(revisions):
 def index(request):
     default_pk = request.session.get('branch', None)
     if default_pk is None:
-        branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
+        branches = Branch.maintenance().order_by('-branch_revision', '-name')
         default_pk = branches[0].pk
     return redirect('branch', branch_id=default_pk)
 
@@ -61,9 +61,9 @@ def branch(request, branch_id):
     request.session['branch'] = branch_id
 
     template = loader.get_template('mfctracker/index.html')
-    head = Branch.head()
-    branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
-    query = head.commits.filter(revision__gt=current_branch.branch_revision)
+    trunk = Branch.trunk()
+    branches = Branch.maintenance().order_by('-branch_revision', '-name')
+    query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
 
     author = request.session.get('author', None)
     filter_waiting = request.session.get('filter_waiting', False)
@@ -132,6 +132,7 @@ def branch(request, branch_id):
 
 def mfchelper(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
+    trunk_branch = Branch.trunk()
     template = loader.get_template('mfctracker/mfc.html')
     revisions = request.session.get('basket', [])
     revisions.sort()
@@ -148,7 +149,7 @@ def mfchelper(request, branch_id):
     merge_revisions = svn_revisions_arg(revisions)
     commit_command = 'svn merge '
     commit_command += ' '.join(merge_revisions)
-    commit_command += ' ^/head/'
+    commit_command += ' ^' + trunk_branch.path + '/'
     path = current_branch.path.strip('/')
     commit_command += ' ' + path
     context['commit_msg'] = commit_msg
