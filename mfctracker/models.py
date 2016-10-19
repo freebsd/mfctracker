@@ -28,7 +28,7 @@ class Commit(models.Model):
     mfc_after = models.DateField(blank=True, null=True)
     msg = models.TextField() 
     merged_to = models.ManyToManyField(Branch, blank=True, related_name='merges')
-    branch = models.ForeignKey(Branch, null=True, on_delete=models.SET_NULL)
+    branch = models.ForeignKey(Branch, null=True, on_delete=models.SET_NULL, related_name='commits')
 
     @classmethod
     def create(cls, revision, author, date, msg):

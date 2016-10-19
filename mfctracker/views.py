@@ -63,7 +63,7 @@ def branch(request, branch_id):
     template = loader.get_template('mfctracker/index.html')
     head = Branch.head()
     branches = Branch.objects.filter(~Q(name='HEAD')).order_by('-branch_revision', '-name')
-    query = head.commit_set.filter(revision__gt=current_branch.branch_revision)
+    query = head.commits.filter(revision__gt=current_branch.branch_revision)
 
     author = request.session.get('author', None)
     filter_waiting = request.session.get('filter_waiting', False)
