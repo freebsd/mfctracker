@@ -66,13 +66,13 @@ $( document ).ready(function() {
         {% csrf_token %}
         <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-primary filter {{ waiting_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}><span class="glyphicon glyphicon-ok"></span>
+            <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}><span class="glyphicon glyphicon-ok"></span> Waiting
         </label>
         <label class="btn btn-success filter {{ ready_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_ready" {{ ready_checked }}><span class="glyphicon glyphicon-ok"></span>
+            <input type="checkbox" autocomplete="off" name="filter_ready" {{ ready_checked }}><span class="glyphicon glyphicon-ok"></span> Ready
         </label>
         <label class="btn btn-default filter {{ other_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_other" {{ other_checked }}><span class="glyphicon glyphicon-ok"></span>
+            <input type="checkbox" autocomplete="off" name="filter_other" {{ other_checked }}><span class="glyphicon glyphicon-ok"></span> No MFC date
         </label>
         </div>
         <div class="form-group">
