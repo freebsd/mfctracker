@@ -47,3 +47,13 @@ class Commit(models.Model):
         if eol >= 0:
             return  msg[0:eol]
         return msg
+
+class Change(models.Model):
+    path = models.CharField(max_length=1024)
+    operation = models.CharField(max_length=8)
+    commit = models.ForeignKey(Commit, on_delete=models.CASCADE, related_name='changes')
+
+    @classmethod
+    def create(cls, commit, operation, path):
+        commit = cls(path=path, operation=operation, commit=commit)
+        return commit

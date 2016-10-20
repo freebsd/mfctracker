@@ -8,7 +8,7 @@ from datetime import date
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
-from mfctracker.models import Commit, Branch
+from mfctracker.models import Commit, Branch, Change
 
 def mergeinfo_ranges_to_set(mergeinfo_ranges):
     """Convert compact ranges representation to python set object"""
@@ -70,12 +70,14 @@ class Command(BaseCommand):
         r = svn.remote.RemoteClient(settings.SVN_BASE_URL)
 
         for b in branches:
+            branch_path = b.path
+            branch_path = branch_path
             if revision < 0:
                 revision = b.last_revision
             # Do not go behind first commit to the branch
             revision = max(revision, b.branch_revision)
             self.stdout.write('Importing commits for branch %s, starting with r%d' % (b.name, revision))
-            log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision, limit=limit)))
+            log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision, limit=limit, changelist=True)))
             branch_commits = 0
             last_revision = 0
             for entry in log_entries:
@@ -83,6 +85,13 @@ class Command(BaseCommand):
                 commit.branch = b
                 commit.mfc_after = self.parse_mfc_entry(entry.msg, entry.date)
                 commit.save()
+                for c in entry.changelist:
+                    op = c[0]
+                    path = c[1]
+                    if not path.startswith(branch_path):
+                        self.stdout.write(self.style.ERROR('r{}: invalid path {} for branch {}, should start with {}'.format(entry.revision, path, b.name, branch_path)))
+                    change = Change.create(commit, op, path)
+                    change.save()
                 branch_commits += 1
                 last_revision = max(last_revision, entry.revision)
 
