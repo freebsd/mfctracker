@@ -1,4 +1,5 @@
-from django.conf.urls import url
+from django.conf.urls import include, url
+from django.conf import settings
 
 from . import views
 
@@ -13,3 +14,9 @@ urlpatterns = [
     url(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
     url(r'^commit/(?P<revision>[0-9]+)$', views.commit, name='commit'),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]

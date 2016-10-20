@@ -3,3 +3,4 @@ svn==0.3.44
 jsonfield
 django-bootstrap3
 parsedatetime
+psycopg2
