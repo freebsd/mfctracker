@@ -16,6 +16,22 @@ def svn_range_to_arg(start, end):
     else:
         return '-r {}:{}'.format(start - 1, end)
 
+def parse_extended_filters(trunk_path, filters):
+    result = None
+    for s in filters.split('\n'):
+        s = s.strip()
+        if not s:
+            continue
+        if not s.startswith('/'):
+            s = '/' + s
+        path = trunk_path + s
+        q = Q(changes__path__startswith=path)
+        if result is None:
+            result = q
+        else:
+            result = result | q
+    return result
+
 def svn_revisions_arg(revisions):
     args = []
 
@@ -45,14 +61,17 @@ def index(request):
     return redirect('branch', branch_id=default_pk)
 
 def setfilter(request, branch_id):
-    author = request.GET.get('author', None)
-    filter_waiting = request.GET.get('filter_waiting', None)
-    filter_ready = request.GET.get('filter_ready', None)
-    filter_other = request.GET.get('filter_other', None)
+    author = request.POST.get('author', None)
+    filter_waiting = request.POST.get('filter_waiting', None)
+    filter_ready = request.POST.get('filter_ready', None)
+    filter_other = request.POST.get('filter_other', None)
+    extended_filters = request.POST.get('extended_filters', None)
+
     request.session['author'] = author
     request.session['filter_waiting'] = filter_waiting is not None
     request.session['filter_ready'] = filter_ready is not None
     request.session['filter_other'] = filter_other is not None
+    request.session['extended_filters'] = extended_filters
 
     return redirect('branch', branch_id=branch_id)
 
@@ -69,6 +88,7 @@ def branch(request, branch_id):
     filter_waiting = request.session.get('filter_waiting', False)
     filter_ready = request.session.get('filter_ready', False)
     filter_other = request.session.get('filter_other', False)
+    extended_filters = request.session.get('extended_filters', '')
 
     if author:
         query = query.filter(author=author)
@@ -89,9 +109,11 @@ def branch(request, branch_id):
     if filter_waiting or filter_ready or filter_other:
        q = q & ~Q(merged_to__pk__contains=current_branch.pk)
 
+    if extended_filters:
+        q = q & parse_extended_filters(trunk.path, extended_filters)
     query = query.filter(q)
 
-    all_commits = query.order_by('-revision')
+    all_commits = query.order_by('-revision').distinct('revision')
     paginator = Paginator(all_commits, 15)
 
     page = request.GET.get('page')
@@ -115,6 +137,7 @@ def branch(request, branch_id):
     context['branches'] = branches
     context['current_branch'] = current_branch
     context['author'] = author
+    context['extended_filters'] = extended_filters
 
     if filter_waiting:
         context['waiting_checked'] = 'checked'
