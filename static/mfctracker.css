@@ -57,3 +57,7 @@ td {
 .inbasket {
     color: #f0ad4e;
 }
+
+#commits a {
+    color: #000;
+}

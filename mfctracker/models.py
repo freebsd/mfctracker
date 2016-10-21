@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+
 import jsonfield
 
 class Branch(models.Model):
@@ -47,6 +49,18 @@ class Commit(models.Model):
         if eol >= 0:
             return  msg[0:eol]
         return msg
+
+    @property
+    def more(self):
+        msg = self.msg.strip()
+        eol = msg.find('\n')
+        if eol >= 0:
+            return  msg[eol:].strip()
+        return ''
+
+    @property
+    def viewvc_url(self):
+        return settings.VIEWVC_REVISION_URL.format(revision=self.revision)
 
 class Change(models.Model):
     path = models.CharField(max_length=1024)

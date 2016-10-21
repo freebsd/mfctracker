@@ -12,7 +12,6 @@ urlpatterns = [
     url(r'^mfcbasket/add$', views.addrevision, name='addrevision'),
     url(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),
     url(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
-    url(r'^commit/(?P<revision>[0-9]+)$', views.commit, name='commit'),
 ]
 
 if settings.DEBUG:

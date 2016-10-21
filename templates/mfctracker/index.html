@@ -25,6 +25,15 @@ $( document ).ready(function() {
 		});
     });
 
+    $(".summary").click(function() {
+		var tr = $(this).closest("#commits tr");
+        var revision = $(tr).attr("revision");
+		$.get( "/commit/" + revision, function( data ) {
+			$("#commit-modal .modal-body").html(data);
+			$("#commit-modal").modal();
+		});
+    });
+
     $("#setfilter").click(function() {
         $('input[name="extended_filters"]').val($("#extended_filters_edit").val());
         $("#filtersform").submit();
@@ -106,7 +115,15 @@ $( document ).ready(function() {
                     <td class="col-sm-1">r{{ commit.revision }}</td>
                     <td class="col-sm-1">{{ commit.author }}</td>
                     <td class="col-sm-2">{{ commit.date }}</td>
-                    <td class="col-sm-7"><span class="summary">{{ commit.summary }}</span></td>
+                    <td class="col-sm-7"><a data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }}</a>
+
+                     <div class="collapse" id="more{{commit.revision}}">
+                         {% if commit.more|length > 0 %}
+                         <pre>{{commit.more}}</pre>
+                         {% endif %}
+                         <a role="button" class="btn btn-default viewvc" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
+                    </div>
+                    </td>
                     <td class="col-sm-1 text-right"><button type="button" class="btn btn-default hide" aria-label="Add" id="action">
                       <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
                     </button></td>

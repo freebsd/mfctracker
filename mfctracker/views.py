@@ -226,9 +226,3 @@ def clearbasket(request):
     request.session['basket'] = current_basket
 
     return JsonResponse({'basket': current_basket})
-
-def commit(request, revision):
-    commit = get_object_or_404(Commit, revision=revision)
-    template = loader.get_template('mfctracker/commit.html')
-    url = settings.VIEWVC_REVISION_URL.format(revision=revision)
-    return HttpResponse(template.render({'commit': commit, 'url': url}, request))
