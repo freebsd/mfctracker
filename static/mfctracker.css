@@ -58,6 +58,10 @@ td {
     color: #f0ad4e;
 }
 
-#commits a {
+a.commit {
     color: #000;
+}
+
+pre>a {
+    font-weight: bold;
 }

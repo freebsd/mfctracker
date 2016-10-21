@@ -115,11 +115,11 @@ $( document ).ready(function() {
                     <td class="col-sm-1">r{{ commit.revision }}</td>
                     <td class="col-sm-1">{{ commit.author }}</td>
                     <td class="col-sm-2">{{ commit.date }}</td>
-                    <td class="col-sm-7"><a data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }}</a>
+                    <td class="col-sm-7"><a class="commit" data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }}</a>
 
                      <div class="collapse" id="more{{commit.revision}}">
                          {% if commit.more|length > 0 %}
-                         <pre>{{commit.more}}</pre>
+                         <pre>{{commit.more|urlize}}</pre>
                          {% endif %}
                          <a role="button" class="btn btn-default viewvc" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
                     </div>
