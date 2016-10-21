@@ -53,3 +53,7 @@ td {
 .filter.active span.glyphicon {
     opacity: 1;
 }
+
+.inbasket {
+    color: #f0ad4e;
+}

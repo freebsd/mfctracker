@@ -20,15 +20,13 @@ MFC.setupCommitActionButtons = function() {
         var icon = $(action).find(".glyphicon")[0];
 		var revision = $(element).attr('revision');
 		if (MFC.basket.includes(revision)) {
-			$(icon).removeClass('glyphicon-plus');
-			$(icon).addClass('glyphicon-minus');
+			$(icon).addClass('inbasket');
 			$(action).off("click").click(function(e) {
 				MFC.delRevision(revision);
 			});
 		}
 		else {
-			$(icon).addClass('glyphicon-plus');
-			$(icon).removeClass('glyphicon-minus');
+			$(icon).removeClass('inbasket');
 			$(action).off("click").click(function(e) {
 				MFC.addRevision(revision);
 			});
