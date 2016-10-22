@@ -20,12 +20,12 @@ td {
 
 .table>tbody>tr.mfcready>td, 
 .table>tbody>tr.mfcready>th {
-   background-color: #00c851;
+   background-color: #c8e6c9;
 }
 
 .table>tbody>tr.mfcwait>td, 
 .table>tbody>tr.mfcwait>th {
-   background-color: #33b5e5;
+   background-color: #bbdefb;
 }
 
 .table {
