@@ -18,5 +18,5 @@ def custom_show_toolbar(request):
     return True  # Always show toolbar
 
 DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': 'mfctracker.settings.custom_show_toolbar',
+    'SHOW_TOOLBAR_CALLBACK': 'mfctracker.settings.development.custom_show_toolbar',
 }
