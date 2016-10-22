@@ -53,6 +53,33 @@ def svn_revisions_arg(revisions):
     args.append(svn_range_to_arg(range_start, range_end))
     return args
 
+def commit_msg_revisions(revisions):
+    result = []
+
+    if len(revisions) == 0:
+        return result
+
+    range_start = revisions[0]
+    range_end = revisions[0]
+
+    i = 1
+    while i < len(revisions):
+        if revisions[i] - 1 == range_end:
+            range_end = revisions[i]
+        else:
+            if range_start == range_end:
+                result.append('r{}'.format(range_start))
+            else:
+                result.append('r{}-r{}'.format(range_start, range_end))
+            range_start = range_end = revisions[i]
+        i += 1
+
+    if range_start == range_end:
+        result.append('r{}'.format(range_start))
+    else:
+        result.append('r{}-r{}'.format(range_start, range_end))
+    return ', '.join(result)
+
 def index(request):
     default_pk = request.session.get('branch', None)
     if default_pk is None:
@@ -160,8 +187,11 @@ def mfchelper(request, branch_id):
     revisions = request.session.get('basket', [])
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
-    str_revisions = map(lambda x: 'r' + str(x), revisions)
-    commit_msg = 'MFC ' + ', '.join(str_revisions) + ': \n'
+    str_revisions = commit_msg_revisions(revisions)
+    commit_msg = 'MFC ' + str_revisions
+    if len(revisions) == 1:
+        commit_msg += ':'
+    commit_msg += '\n'
     for commit in commits:
         if len(revisions) > 1:
             commit_msg = commit_msg + '\nr' + str(commit.revision) + ':'
