@@ -92,13 +92,13 @@ def setfilter(request, branch_id):
     filter_waiting = request.POST.get('filter_waiting', None)
     filter_ready = request.POST.get('filter_ready', None)
     filter_other = request.POST.get('filter_other', None)
-    extended_filters = request.POST.get('extended_filters', None)
+    # extended_filters = request.POST.get('extended_filters', None)
 
     request.session['author'] = author
     request.session['filter_waiting'] = filter_waiting is not None
     request.session['filter_ready'] = filter_ready is not None
     request.session['filter_other'] = filter_other is not None
-    request.session['extended_filters'] = extended_filters
+    # request.session['extended_filters'] = extended_filters
 
     return redirect('branch', branch_id=branch_id)
 
@@ -115,7 +115,7 @@ def branch(request, branch_id):
     filter_waiting = request.session.get('filter_waiting', False)
     filter_ready = request.session.get('filter_ready', False)
     filter_other = request.session.get('filter_other', False)
-    extended_filters = request.session.get('extended_filters', '')
+    # extended_filters = request.session.get('extended_filters', '')
 
     if author:
         query = query.filter(author=author)
@@ -136,8 +136,8 @@ def branch(request, branch_id):
     if filter_waiting or filter_ready or filter_other:
        q = q & ~Q(merged_to__pk__contains=current_branch.pk)
 
-    if extended_filters:
-        q = q & parse_extended_filters(trunk.path, extended_filters)
+    # if extended_filters:
+    #     q = q & parse_extended_filters(trunk.path, extended_filters)
     query = query.filter(q)
 
     all_commits = query.order_by('-revision').distinct('revision')
@@ -164,7 +164,7 @@ def branch(request, branch_id):
     context['branches'] = branches
     context['current_branch'] = current_branch
     context['author'] = author
-    context['extended_filters'] = extended_filters
+    # context['extended_filters'] = extended_filters
 
     if filter_waiting:
         context['waiting_checked'] = 'checked'
