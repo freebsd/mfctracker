@@ -32,6 +32,46 @@ def parse_extended_filters(trunk_path, filters):
             result = result | q
     return result
 
+def parse_filters(trunk_path, filters):
+    result = None
+    for s in filters.split():
+        s = s.strip()
+        if not s:
+            continue
+        committer = ''
+        path = ''
+        committer_q = None
+        path_q = None
+
+        if s.find('@') >= 0:
+            committer, path = s.split('@', 1)
+        else:
+            committer = s
+
+        if committer:
+            committer_q = Q(author=committer)
+
+        if path:
+            if not path.startswith('/'):
+                path = '/' + path
+            path = trunk_path + path
+            path_q = Q(changes__path__startswith=path)
+        if path_q and committer_q:
+            q = path_q & committer_q
+        elif path_q:
+            q = path_q
+        elif committer_q:
+            q = committer_q
+
+        if result is None:
+            result = q
+        else:
+            result = result | q
+
+    return result
+
+
+
 def svn_revisions_arg(revisions):
     args = []
 
@@ -88,13 +128,13 @@ def index(request):
     return redirect('branch', branch_id=default_pk)
 
 def setfilter(request, branch_id):
-    author = request.POST.get('author', None)
+    filters = request.POST.get('filters', None)
     filter_waiting = request.POST.get('filter_waiting', None)
     filter_ready = request.POST.get('filter_ready', None)
     filter_other = request.POST.get('filter_other', None)
     # extended_filters = request.POST.get('extended_filters', None)
 
-    request.session['author'] = author
+    request.session['filters'] = filters
     request.session['filter_waiting'] = filter_waiting is not None
     request.session['filter_ready'] = filter_ready is not None
     request.session['filter_other'] = filter_other is not None
@@ -111,16 +151,22 @@ def branch(request, branch_id):
     branches = Branch.maintenance().order_by('-branch_revision', '-name')
     query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
 
-    author = request.session.get('author', None)
+    filters = request.session.get('filters', None)
     filter_waiting = request.session.get('filter_waiting', False)
     filter_ready = request.session.get('filter_ready', False)
     filter_other = request.session.get('filter_other', False)
     # extended_filters = request.session.get('extended_filters', '')
 
-    if author:
-        query = query.filter(author=author)
+
+    # if extended_filters:
+    #     q = q & parse_extended_filters(trunk.path, extended_filters)
+
+    if filters:
+        parsed_q = parse_filters(trunk.path, filters)
+        if parsed_q:
+            query = query.filter(parsed_q)
     else:
-        author = ''
+        filters = ''
 
     q = Q()
 
@@ -163,7 +209,7 @@ def branch(request, branch_id):
     context['commits'] = commits
     context['branches'] = branches
     context['current_branch'] = current_branch
-    context['author'] = author
+    context['filters'] = filters
     # context['extended_filters'] = extended_filters
 
     if filter_waiting:
