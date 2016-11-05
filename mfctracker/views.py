@@ -233,16 +233,18 @@ def mfchelper(request, branch_id):
     revisions = request.session.get('basket', [])
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
-    str_revisions = commit_msg_revisions(revisions)
-    commit_msg = 'MFC ' + str_revisions
-    if len(revisions) == 1:
-        commit_msg += ':'
-    commit_msg += '\n'
-    for commit in commits:
-        if len(revisions) > 1:
-            commit_msg = commit_msg + '\nr' + str(commit.revision) + ':'
-        commit_msg = commit_msg + '\n' + commit.msg
-        commit_msg = commit_msg.strip() + '\n'
+    commit_msg = None
+    if len(revisions) > 0:
+        str_revisions = commit_msg_revisions(revisions)
+        commit_msg = 'MFC ' + str_revisions
+        if len(revisions) == 1:
+            commit_msg += ':'
+        commit_msg += '\n'
+        for commit in commits:
+            if len(revisions) > 1:
+                commit_msg = commit_msg + '\nr' + str(commit.revision) + ':'
+            commit_msg = commit_msg + '\n' + commit.msg
+            commit_msg = commit_msg.strip() + '\n'
 
     context = {}
     merge_revisions = svn_revisions_arg(revisions)
