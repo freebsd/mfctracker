@@ -28,6 +28,16 @@ td {
    background-color: #bbdefb;
 }
 
+.table>tbody>tr.mfcready:hover>td, 
+.table>tbody>tr.mfcready:hover>th {
+   background-color: #bbd9bc;
+}
+
+.table>tbody>tr.mfcwait:hover>td, 
+.table>tbody>tr.mfcwait:hover>th {
+   background-color: #aed1ee;
+}
+
 .table {
   table-layout:fixed;
 }
