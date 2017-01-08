@@ -1,4 +1,5 @@
 from datetime import date
+import re
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
@@ -240,10 +241,14 @@ def mfchelper(request, branch_id):
         if len(revisions) == 1:
             commit_msg += ':'
         commit_msg += '\n'
+        mfc_re = re.compile('^MFC\s+after:.*\n?', re.IGNORECASE | re.MULTILINE)
         for commit in commits:
             if len(revisions) > 1:
                 commit_msg = commit_msg + '\nr' + str(commit.revision) + ':'
-            commit_msg = commit_msg + '\n' + commit.msg
+            # Remove ^MFC.*after:.*$
+            msg = commit.msg
+            msg = mfc_re.sub('', msg)
+            commit_msg = commit_msg + '\n' + msg
             commit_msg = commit_msg.strip() + '\n'
 
     context = {}
