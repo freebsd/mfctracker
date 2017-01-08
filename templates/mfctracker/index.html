@@ -1,17 +1,9 @@
-{% load static %}
+{% extends "mfctracker/base.html" %}
+
 {% load bootstrap3 %}
 {% load mfc_state %}
 
-<html>
-<head>
-
-{# Load CSS and JavaScript #}
-{% bootstrap_javascript jquery=1 %}
-{% bootstrap_css %}
-<link rel="stylesheet" type="text/css" href="{% static "mfctracker.css" %}" />
-<script src="{% static "csrf.js" %}"></script>
-<script src="{% static "mfctracker.js" %}"></script>
-
+{% block head %}
 <script>
 $( document ).ready(function() {
 	MFC.fetchBasket();
@@ -23,9 +15,9 @@ $( document ).ready(function() {
 
 });
 </script>
+{% endblock %}
 
-</head>
-<body>
+{% block content %}
 <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="commit-modal">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -119,5 +111,4 @@ $( document ).ready(function() {
           </div>
       </div>
 </div>
-</body>
-</html>
+{% endblock %}
