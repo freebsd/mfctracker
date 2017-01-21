@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.auth',
     'bootstrap3',
     'mfctracker',
 ]
@@ -77,6 +78,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     op.join(BASE_DIR, "static"),
 ]
+
+LOGIN_REDIRECT_URL = '/'
 
 SVN_BASE_URL = 'http://svn.freebsd.org/base'
 VIEWVC_REVISION_URL = 'http://svnweb.freebsd.org/changeset/base/{revision}'

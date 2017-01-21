@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 from django.conf import settings
+from django.contrib.auth import views as auth_views
 
 from . import views
 
@@ -12,6 +13,8 @@ urlpatterns = [
     url(r'^mfcbasket/add$', views.addrevision, name='addrevision'),
     url(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),
     url(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
+    url(r'^login/$', auth_views.login, name='login'),
+    url(r'^logout/$', auth_views.logout, name='logout'),
 ]
 
 if settings.DEBUG:
