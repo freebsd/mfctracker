@@ -71,3 +71,14 @@ class Change(models.Model):
     def create(cls, commit, operation, path):
         commit = cls(path=path, operation=operation, commit=commit)
         return commit
+
+
+class CommitNote(models.Model):
+    text = models.TextField() 
+    commit = models.ForeignKey(Commit, on_delete=models.CASCADE, related_name='notes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notes')
+
+    @classmethod
+    def create(cls, commit, user, text):
+        note = cls(commit=commit, user=user, text=text)
+        return note
