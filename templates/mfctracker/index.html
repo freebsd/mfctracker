@@ -51,6 +51,22 @@ $( document ).ready(function() {
         </li>
         <li><a href="{% url 'mfchelper' branch_id=current_branch.pk %}">MFC Basket <span class="badge" id="mfccount">0</span></a></li>
       </ul>
+      {% if user.is_authenticated %}
+          <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Menu<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li class="dropdown-header">Logged in as {{request.user.username}}</li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="{% url 'logout' %}">Sign out</a></li>
+                    </ul>
+                </li>
+          </ul>
+      {% else %}
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{% url 'login' %}">Sign in</a></li>
+          </ul>
+      {% endif %}
       <form id="filtersform" class="navbar-form navbar-right" action="{% url 'setfilter' branch_id=current_branch.pk %}" method="POST">
         {% csrf_token %}
         <div class="btn-group" data-toggle="buttons">
