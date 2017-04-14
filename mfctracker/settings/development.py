@@ -20,3 +20,5 @@ def custom_show_toolbar(request):
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': 'mfctracker.settings.development.custom_show_toolbar',
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
