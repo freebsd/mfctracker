@@ -89,7 +89,7 @@ class Command(BaseCommand):
                     op = c[0]
                     path = c[1]
                     if not path.startswith(branch_path):
-                        self.stdout.write(self.style.ERROR('r{}: invalid path {} for branch {}, should start with {}'.format(entry.revision, path, b.name, branch_path)))
+                        continue
                     change = Change.create(commit, op, path)
                     change.save()
                 branch_commits += 1
