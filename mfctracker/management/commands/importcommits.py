@@ -7,8 +7,10 @@ from datetime import date
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
 
-from mfctracker.models import Commit, Branch, Change
+from mfctracker.models import Commit, Branch, Change, CommitNote
 
 def mergeinfo_ranges_to_set(mergeinfo_ranges):
     """Convert compact ranges representation to python set object"""
@@ -58,9 +60,10 @@ class Command(BaseCommand):
             default=None, help='maximum number of commits passsed to svn log command')
 
     def handle(self, *args, **options):
-        revision = options['start_revision']
+        start_revision = options['start_revision']
         branch = options['branch']
         limit = options['limit']
+        committers = {}
 
         if branch is None:
             branches = list(Branch.objects.all())
@@ -72,15 +75,20 @@ class Command(BaseCommand):
         for b in branches:
             branch_path = b.path
             branch_path = branch_path
-            if revision < 0:
+            if start_revision < 0:
                 revision = b.last_revision
+            else:
+                revision = start_revision
             # Do not go behind first commit to the branch
             revision = max(revision, b.branch_revision)
-            self.stdout.write('Importing commits for branch %s, starting with r%d' % (b.name, revision))
+            self.stdout.write('Importing commits for branch %s, starting with r%d (last revision r%d)' % (b.name, revision, b.last_revision))
             log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision, limit=limit, changelist=True)))
             branch_commits = 0
             last_revision = 0
             for entry in log_entries:
+                # Do not include last_revision in subsequent imports
+                if entry.revision <= b.last_revision:
+                    continue
                 commit = Commit.create(entry.revision, entry.author, entry.date, entry.msg)
                 commit.branch = b
                 commit.mfc_after = self.parse_mfc_entry(entry.msg, entry.date)
@@ -94,6 +102,32 @@ class Command(BaseCommand):
                     change.save()
                 branch_commits += 1
                 last_revision = max(last_revision, entry.revision)
+
+                if not committers.has_key(entry.author):
+                    try:
+                        user = User.objects.get(username=entry.author)
+                    except User.DoesNotExist:
+                        email = '{}@{}'.format(entry.author, settings.SVN_EMAIL_DOMAIN)
+                        password = get_random_string(length=32)
+                        self.stdout.write('User does not exist, adding: {}'.format(entry.author))
+                        user = User.objects.create_user(entry.author, email, password)
+                    committers[entry.author] = user
+
+                # X-MFC makes sense only for trunk
+                if not b.trunk:
+                    continue
+                lines = entry.msg.split('\n')
+                notes = []
+                for line in lines:
+                    if re.match('^\s*x-mfc[^:]*:', line, flags=re.IGNORECASE):
+                        notes.append(line)
+                if len(notes) == 0:
+                    continue
+                note_text = "\n".join(notes)
+                user = committers[entry.author]
+                self.stdout.write('X-MFC note found for r{}'.format(entry.revision))
+                commit_note = CommitNote.create(commit, user, note_text)
+                commit_note.save()
 
             if branch_commits:
                 self.stdout.write('Imported {} commits, last revision is {}'.format(branch_commits, last_revision))
@@ -138,8 +172,6 @@ class Command(BaseCommand):
                     mfc_after = date.fromtimestamp(time.mktime(mfc_after_st))
                     return mfc_after
                 else:
-                    self.stdout.write(self.style.ERROR('Failed to pare MFC line: \'{}\''.format(line)))
+                    self.stdout.write(self.style.ERROR('Failed to parse MFC line: \'{}\''.format(line)))
 
         return None
-
-
