@@ -85,3 +85,5 @@ LOGIN_REDIRECT_URL = '/'
 
 SVN_BASE_URL = 'http://svn.freebsd.org/base'
 VIEWVC_REVISION_URL = 'http://svnweb.freebsd.org/changeset/base/{revision}'
+
+TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
