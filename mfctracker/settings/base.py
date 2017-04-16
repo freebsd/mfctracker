@@ -83,6 +83,7 @@ STATICFILES_DIRS = [
 
 LOGIN_REDIRECT_URL = '/'
 
+SVN_EMAIL_DOMAIN = 'freebsd.org'
 SVN_BASE_URL = 'http://svn.freebsd.org/base'
 VIEWVC_REVISION_URL = 'http://svnweb.freebsd.org/changeset/base/{revision}'
 
