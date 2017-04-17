@@ -1,15 +1,16 @@
 from datetime import date
 import re
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_POST
-from django.template import loader
 from django.shortcuts import redirect, get_object_or_404
+from django.template import loader
+from django.views.decorators.http import require_POST, require_http_methods
 
-from .models import Branch, Commit
+from .models import Branch, Commit, CommitNote
 from .utils import get_mfc_requirements
 
 def svn_range_to_arg(start, end):
@@ -156,7 +157,6 @@ def branch(request, branch_id):
     filter_ready = request.session.get('filter_ready', False)
     filter_other = request.session.get('filter_other', False)
     # extended_filters = request.session.get('extended_filters', '')
-
 
     # if extended_filters:
     #     q = q & parse_extended_filters(trunk.path, extended_filters)
@@ -323,3 +323,29 @@ def clearbasket(request):
     request.session['basket'] = current_basket
 
     return JsonResponse({'basket': current_basket})
+
+@require_http_methods(["POST", "DELETE"])
+def comment_commit(request, revision):
+    if not request.user.is_authenticated():
+        raise PermissionDenied
+
+    try:
+        revision = int(revision)
+    except ValueError:
+        return HttpResponseBadRequest()
+
+    commit = get_object_or_404(Commit, revision=revision)
+    if request.method == 'DELETE':
+        # Delete comment if text wasn't passed
+        try:
+            comment = CommitNote.objects.get(commit=commit, user=request.user)
+            comment.delete()
+        except CommitNote.DoesNotExist:
+            pass
+    elif request.method == 'POST':
+        # Delete comment if text wasn't passed
+        note, created = CommitNote.objects.get_or_create(commit=commit, user=request.user)
+        note.text = request.POST.get('text', '')
+        note.save()
+
+    return HttpResponse(status=204)
