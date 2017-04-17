@@ -78,6 +78,13 @@ $( document ).ready(function() {
 
 
 <div class="container">
+{% if alerts %}
+<div class="row">
+  {% for alert in alerts %}
+  <div class="alert alert-warning">{{alert}}</div>
+  {% endfor %}
+</div>
+{% endif %}
 {% if empty %}
       <div class="row text-center">
           <h2>No MFC commits</h2>

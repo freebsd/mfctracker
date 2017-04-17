@@ -10,6 +10,7 @@ from django.template import loader
 from django.shortcuts import redirect, get_object_or_404
 
 from .models import Branch, Commit
+from .utils import get_mfc_requirements
 
 def svn_range_to_arg(start, end):
     if start == end:
@@ -70,8 +71,6 @@ def parse_filters(trunk_path, filters):
             result = result | q
 
     return result
-
-
 
 def svn_revisions_arg(revisions):
     args = []
@@ -235,6 +234,7 @@ def mfchelper(request, branch_id):
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     commit_msg = None
+    alerts = []
     if len(revisions) > 0:
         str_revisions = commit_msg_revisions(revisions)
         commit_msg = 'MFC ' + str_revisions
@@ -251,6 +251,13 @@ def mfchelper(request, branch_id):
             commit_msg = commit_msg + '\n' + msg
             commit_msg = commit_msg.strip() + '\n'
 
+            mfc_with = get_mfc_requirements(msg)
+            missing = mfc_with - set(revisions)
+            if len(missing) > 0:
+                missing_list = ', '.join([str(x) for x in missing])
+                plural = 'commits' if len(missing) > 1 else 'commit'
+                alerts.append('Revision {} requires following {}: {}'.format(commit.revision, plural, missing_list))
+
     context = {}
     merge_revisions = svn_revisions_arg(revisions)
     commit_command = 'svn merge '
@@ -258,9 +265,12 @@ def mfchelper(request, branch_id):
     commit_command += ' ^' + trunk_branch.path + '/'
     path = current_branch.path.strip('/')
     commit_command += ' ' + path
+
     context['commit_msg'] = commit_msg
     context['commit_command'] = commit_command
     context['empty'] = len(revisions) == 0
+    if len(alerts):
+        context['alerts'] = alerts
 
     return HttpResponse(template.render(context, request))
 
