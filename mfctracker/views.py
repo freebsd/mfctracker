@@ -260,7 +260,7 @@ def mfchelper(request, branch_id):
             if len(missing) > 0:
                 missing_list = ', '.join([str(x) for x in missing])
                 plural = 'commits' if len(missing) > 1 else 'commit'
-                alerts.append('Revision {} requires following {}: {}'.format(commit.revision, plural, missing_list))
+                alerts.append('Revision {} should be MFCed with following {}: {}'.format(commit.revision, plural, missing_list))
 
     context = {}
     merge_revisions = svn_revisions_arg(revisions)
