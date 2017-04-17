@@ -41,14 +41,6 @@ $( document ).ready(function() {
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ current_branch.name }}<span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            {% for branch in branches %}
-            <li><a href="{% url 'branch' branch_id=branch.pk %}">{{ branch.name }}</a></li>
-            {% endfor %}
-          </ul>
-        </li>
         <li><a href="{% url 'mfchelper' branch_id=current_branch.pk %}">MFC Basket <span class="badge" id="mfccount">0</span></a></li>
       </ul>
       {% if user.is_authenticated %}
@@ -67,36 +59,53 @@ $( document ).ready(function() {
             <li><a href="{% url 'login' %}">Sign in</a></li>
           </ul>
       {% endif %}
-      <form id="filtersform" class="navbar-form navbar-right" action="{% url 'setfilter' branch_id=current_branch.pk %}" method="POST">
-        {% csrf_token %}
-        <div class="btn-group" data-toggle="buttons">
-        <label class="btn btn-primary filter {{ waiting_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}><span class="glyphicon glyphicon-ok"></span> Waiting
-        </label>
-        <label class="btn btn-success filter {{ ready_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_ready" {{ ready_checked }}><span class="glyphicon glyphicon-ok"></span> Ready
-        </label>
-        <label class="btn btn-default filter {{ other_active }}">
-            <input type="checkbox" autocomplete="off" name="filter_other" {{ other_checked }}><span class="glyphicon glyphicon-ok"></span> No MFC date
-        </label>
-        </div>
-        <div class="form-group">
-            <input type="text" class="form-control" name="filters" value="{{ filters }}" placeholder="Committer">
-          <input type="hidden" name="page" value="{{ commits.number }}">
-          <input type="hidden" name="extended_filters" value="">
-        </div>
-        <button type="button" class="btn btn-primary" id="setfilter">Filter</button>
-        <!-- <a class="btn btn-default" role="button" data-toggle="collapse" href="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">Advanced</a> -->
-      </form>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
 </nav>
 
-<div class="container-fluid">
+<div class="container">
       <div class="row">
-          <div class="collapse" id="advancedFilters">
-              <textarea id="extended_filters_edit" class="form-control" rows="3" placeholder="sys/arm&#10;&#13;author2@sys/conf">{{ extended_filters }}</textarea>
-          </div>
+         <!-- Branch -->
+         <div class="col-md-2">
+           <div class="dropdown">
+             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownBranches" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+               Branch: <b>{{ current_branch.name }}</b>
+               <span class="caret"></span>
+             </button>
+             <ul class="dropdown-menu" aria-labelledby="dropdownBranches">
+               {% for branch in branches %}
+               <li><a href="{% url 'branch' branch_id=branch.pk %}">{{ branch.name }}</a></li>
+               {% endfor %}
+             </ul>
+           </div>
+         </div>
+
+        <div class="col-md-10 text-right">
+
+          <form id="filtersform" class="form-inline" action="{% url 'setfilter' branch_id=current_branch.pk %}" method="POST">
+            {% csrf_token %}
+            <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-primary filter {{ waiting_active }}">
+                <input type="checkbox" autocomplete="off" name="filter_waiting" {{ waiting_checked }}><span class="glyphicon glyphicon-ok"></span> Waiting
+            </label>
+            <label class="btn btn-success filter {{ ready_active }}">
+                <input type="checkbox" autocomplete="off" name="filter_ready" {{ ready_checked }}><span class="glyphicon glyphicon-ok"></span> Ready
+            </label>
+            <label class="btn btn-default filter {{ other_active }}">
+                <input type="checkbox" autocomplete="off" name="filter_other" {{ other_checked }}><span class="glyphicon glyphicon-ok"></span> No MFC date
+            </label>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="filters" value="{{ filters }}" placeholder="Committer">
+              <input type="hidden" name="page" value="{{ commits.number }}">
+              <input type="hidden" name="extended_filters" value="">
+            </div>
+            <button type="button" class="btn btn-primary" id="setfilter">Filter</button>
+            <!-- <a class="btn btn-default" role="button" data-toggle="collapse" href="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">Advanced</a> -->
+          </form>
+        </div>
+      </div>
+      <div class="row">
       </div>
       <div class="row">
         <table class="table table-hover" id="commits">
