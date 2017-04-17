@@ -53,4 +53,26 @@ MFC.fetchBasket = function() {
 	});
 };
 
+MFC.setupCommitCommentButtons = function() {
+    ("#commits tr").each(function(index, element) {
+        var action = $(element).find("#comment")[0];
+		var revision = $(element).attr('revision');
+		$(action).off("click").click(function(e) {
+			MFC.addRevision(revision);
+		});
+    })
+};
 
+MFC.updateComment = function(revision, text, success) {
+	$.post( "/commit/" + revision + "/comment", { 'text': text }, function (data) {
+		success(data);
+	});
+}
+
+MFC.deleteComment = function(revision, success) {
+    $.ajax({
+        url: "/commit/" + revision + "/comment",
+        type: 'DELETE',
+        success: success
+    });
+}

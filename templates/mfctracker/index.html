@@ -2,6 +2,7 @@
 
 {% load bootstrap3 %}
 {% load mfc_state %}
+{% load commit_note %}
 
 {% block head %}
 <script>
@@ -13,11 +14,63 @@ $( document ).ready(function() {
         $("#filtersform").submit();
     });
 
+    $('#commentModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var revision = button.data('revision') // Extract info from data-* attributes
+      var modal = $(this)
+      modal.find('label').text('Comment for r' + revision + ':')
+      // modal.find('.modal-body input').val(recipient)
+      var text = modal.find('#text');
+      var savecomment = modal.find('#savecomment');
+      var deletecomment = modal.find('#deletecomment');
+      var note = $('#note-text-' + revision);
+      $(text).val(($(note).text()));
+
+      $(savecomment).off("click").click(function(e) {
+          var comment = $(text).val();
+          MFC.updateComment(revision, comment, function (data) {
+              console.log('posted');
+              $(note).text(comment);
+              $('.note-' + revision).removeClass('hide');
+              $(modal).modal('toggle')
+          });
+      });
+
+      $(deletecomment).off("click").click(function(e) {
+          MFC.deleteComment(revision, function (data) {
+              console.log('deleted');
+              $(note).text('');
+              $('.note-' + revision).addClass('hide');
+              $(modal).modal('toggle')
+          });
+      });
+    })
 });
 </script>
 {% endblock %}
 
 {% block content %}
+
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="text" class="form-control-label">Comment:</label>
+            <textarea class="form-control" id="text" rows="10" name="text"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+		<button type="button" class="btn btn-primary" aria-label="Save Comment" id="savecomment">Save</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal" aria-label="Cancel Comment" id="cancelcomment">Cancel</button>
+		<button type="button" class="btn btn-danger pull-left" aria-label="Delete Comment" id="deletecomment"><span class="glyphicon glyphicon-trash"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="commit-modal">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -114,15 +167,23 @@ $( document ).ready(function() {
                     <td class="col-sm-1">r{{ commit.revision }}</td>
                     <td class="col-sm-1">{{ commit.author }}</td>
                     <td class="col-sm-2">{{ commit.date }}</td>
-                    <td class="col-sm-7"><span class="summary" data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }}</span>
+                     {% with note=commit|commit_note:request.user %}  
+                     <td class="col-sm-7"><span class="summary" data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }} <i class="glyphicon glyphicon-comment {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment"></i></span>
 
                      <div class="collapse" id="more{{commit.revision}}">
                          {% if commit.more|length > 0 %}
                          <pre>{{commit.more|urlize}}</pre>
                          {% endif %}
-                         <a role="button" class="btn btn-default viewvc" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
+                         <div class="panel panel-default {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment-panel">
+                             <div class="panel-body" id="note-text-{{commit.revision}}">{{note.text}}</div>
+                             </div>
+                         <a role="button" class="btn btn-default viewvc pull-right" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
+                         {% if user.is_authenticated %}
+                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#commentModal" data-revision="{{commit.revision}}"><span class="glyphicon glyphicon-comment"></span> Comment</button>
+                         {% endif %}
                     </div>
                     </td>
+                    {% endwith %}
                     <td class="col-sm-1 text-right"><button type="button" class="btn btn-default hide" aria-label="Add" id="action">
                       <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
                     </button></td>
