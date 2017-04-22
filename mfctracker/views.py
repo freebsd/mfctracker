@@ -121,6 +121,20 @@ def commit_msg_revisions(revisions):
         result.append('r{}-r{}'.format(range_start, range_end))
     return ', '.join(result)
 
+def parse_x_mfc_with_alerts(commits):
+    alerts = []
+    revisions = [commit.revision for commit in commits]
+    for commit in commits:
+        # Remove ^MFC.*after:.*$
+        msg = commit.msg
+        mfc_with = get_mfc_requirements(commit.msg)
+        missing = mfc_with - set(revisions)
+        if len(missing) > 0:
+            missing_list = ', '.join([str(x) for x in missing])
+            plural = 'commits' if len(missing) > 1 else 'commit'
+            alerts.append('Revision {} should be MFCed with following {}: {}'.format(commit.revision, plural, missing_list))
+    return alerts
+
 def index(request):
     default_pk = request.session.get('branch', None)
     if default_pk is None:
@@ -236,6 +250,7 @@ def mfcbasket(request, branch_id):
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     context = {}
     context['commits'] = commits
+    context['alerts'] = parse_x_mfc_with_alerts(commits)
     context['current_branch'] = current_branch
     return HttpResponse(template.render(context, request))
 
@@ -247,7 +262,6 @@ def mfchelper(request, branch_id):
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     commit_msg = None
-    alerts = []
     if len(revisions) > 0:
         str_revisions = commit_msg_revisions(revisions)
         commit_msg = 'MFC ' + str_revisions
@@ -268,13 +282,6 @@ def mfchelper(request, branch_id):
             commit_msg = commit_msg + '\n' + msg
             commit_msg = commit_msg.strip() + '\n'
 
-            mfc_with = get_mfc_requirements(msg)
-            missing = mfc_with - set(revisions)
-            if len(missing) > 0:
-                missing_list = ', '.join([str(x) for x in missing])
-                plural = 'commits' if len(missing) > 1 else 'commit'
-                alerts.append('Revision {} should be MFCed with following {}: {}'.format(commit.revision, plural, missing_list))
-
     context = {}
     merge_revisions = svn_revisions_arg(revisions)
     commit_command = 'svn merge '
@@ -286,8 +293,7 @@ def mfchelper(request, branch_id):
     context['commit_msg'] = commit_msg
     context['commit_command'] = commit_command
     context['empty'] = len(revisions) == 0
-    if len(alerts):
-        context['alerts'] = alerts
+    context['alerts'] = parse_x_mfc_with_alerts(commits)
 
     return HttpResponse(template.render(context, request))
 
