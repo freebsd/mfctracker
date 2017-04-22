@@ -1,0 +1,22 @@
+{% load static %}
+{% load bootstrap3 %}
+
+<html>
+<head>
+<title>{% block title %}MFC Tracker{% endblock %}</title>
+{# Load CSS and JavaScript #}
+{% bootstrap_javascript jquery=1 %}
+{% bootstrap_css %}
+<link rel="stylesheet" type="text/css" href="{% static "mfctracker.css" %}" />
+<script src="{% static "csrf.js" %}"></script>
+<script src="{% static "mfctracker.js" %}"></script>
+
+{% block head %}
+{% endblock %}
+
+</head>
+<body>
+{% block content %}
+{% endblock %}
+</body>
+</html>
