@@ -121,14 +121,15 @@ def commit_msg_revisions(revisions):
         result.append('r{}-r{}'.format(range_start, range_end))
     return ', '.join(result)
 
-def parse_x_mfc_with_alerts(commits):
+def parse_x_mfc_with_alerts(commits, current_branch):
     alerts = {}
     revisions = [commit.revision for commit in commits]
     for commit in commits:
         # Remove ^MFC.*after:.*$
         msg = commit.msg
         mfc_with = get_mfc_requirements(commit.msg)
-        missing = mfc_with - set(revisions)
+        merged = set(current_branch.merges.filter(revision__in=mfc_with).values_list('revision', flat=True))
+        missing = mfc_with - set(revisions) - merged
         if len(missing) > 0:
             missing_list = ', '.join([str(x) for x in missing])
             plural = 'commits are' if len(missing) > 1 else 'commit is'
@@ -250,7 +251,7 @@ def mfcbasket(request, branch_id):
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     context = {}
     context['commits'] = commits
-    context['alerts'] = parse_x_mfc_with_alerts(commits)
+    context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
     context['current_branch'] = current_branch
     return HttpResponse(template.render(context, request))
 
@@ -294,7 +295,7 @@ def mfchelper(request, branch_id):
     context['commit_command'] = commit_command
     context['current_branch'] = current_branch
     context['empty'] = len(revisions) == 0
-    context['alerts'] = parse_x_mfc_with_alerts(commits)
+    context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
 
     return HttpResponse(template.render(context, request))
 
