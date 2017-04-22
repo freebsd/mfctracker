@@ -16,6 +16,46 @@
 
 </head>
 <body>
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="text" class="form-control-label">Comment:</label>
+            <textarea class="form-control" id="text" rows="10" name="text"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+		<button type="button" class="btn btn-primary" aria-label="Save Comment" id="savecomment">Save</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal" aria-label="Cancel Comment" id="cancelcomment">Cancel</button>
+		<button type="button" class="btn btn-danger pull-left" aria-label="Delete Comment" id="deletecomment"><span class="glyphicon glyphicon-trash"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="confirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Clear MFC Basket</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete all revisions from MFC basket?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirm">Clear</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+{% include "mfctracker/navbar.html" %}
+
 {% block content %}
 {% endblock %}
 </body>

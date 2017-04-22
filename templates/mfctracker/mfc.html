@@ -44,35 +44,13 @@ $( document ).ready(function() {
 {% endblock %}
 
 {% block content %}
-<div class="modal fade" tabindex="-1" role="dialog" id="confirm">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Clear MFC Basket</h4>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to delete all revisions from MFC basket?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirm">Clear</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-{% include "mfctracker/navbar.html" %}
-
 <div class="container">
     {% include "mfctracker/alerts.html" %}
 {% if empty %}
       <div class="row text-center">
           <h2>No MFC commits</h2>
       </div>
-
 {% else %}
-
       <div class="row">
         <div class="col-md-3">
           <form>
