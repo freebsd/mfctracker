@@ -1,0 +1,26 @@
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="{% url 'mfcbasket' branch_id=current_branch.pk %}">MFC Basket <span class="badge" id="mfccount">0</span></a></li>
+      </ul>
+      {% if user.is_authenticated %}
+          <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Menu<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li class="dropdown-header">Logged in as {{request.user.username}}</li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="{% url 'logout' %}">Sign out</a></li>
+                    </ul>
+                </li>
+          </ul>
+      {% else %}
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{% url 'login' %}">Sign in</a></li>
+          </ul>
+      {% endif %}
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
