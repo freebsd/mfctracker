@@ -292,6 +292,7 @@ def mfchelper(request, branch_id):
 
     context['commit_msg'] = commit_msg
     context['commit_command'] = commit_command
+    context['current_branch'] = current_branch
     context['empty'] = len(revisions) == 0
     context['alerts'] = parse_x_mfc_with_alerts(commits)
 
