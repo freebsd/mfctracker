@@ -1,8 +1,6 @@
 {% extends "mfctracker/base.html" %}
 
 {% load bootstrap3 %}
-{% load mfc_state %}
-{% load commit_note %}
 
 {% block head %}
 <script>
@@ -162,35 +160,7 @@ $( document ).ready(function() {
       <div class="row">
       </div>
       <div class="row">
-        <table class="table table-hover" id="commits">
-            {% for commit in commits %}
-                    <tr class="mfc{{ commit | mfc_state:current_branch }}" revision="{{ commit.revision }}">
-                    <td class="col-sm-1">r{{ commit.revision }}</td>
-                    <td class="col-sm-1">{{ commit.author }}</td>
-                    <td class="col-sm-2">{{ commit.date }}</td>
-                     {% with note=commit|commit_note:request.user %}  
-                     <td class="col-sm-7"><span class="summary" data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }} <i class="glyphicon glyphicon-comment {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment"></i></span>
-
-                     <div class="collapse" id="more{{commit.revision}}">
-                         {% if commit.more|length > 0 %}
-                         <pre>{{commit.more|urlize}}</pre>
-                         {% endif %}
-                         <div class="panel panel-default {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment-panel">
-                             <div class="panel-body" id="note-text-{{commit.revision}}">{{note.text}}</div>
-                             </div>
-                         <a role="button" class="btn btn-default viewvc pull-right" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
-                         {% if user.is_authenticated %}
-                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#commentModal" data-revision="{{commit.revision}}"><span class="glyphicon glyphicon-comment"></span> Comment</button>
-                         {% endif %}
-                    </div>
-                    </td>
-                    {% endwith %}
-                    <td class="col-sm-1 text-right"><button type="button" class="btn btn-default hide" aria-label="Add" id="action">
-                      <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
-                    </button></td>
-                </tr>
-            {% endfor %}
-        </table>
+          {% include "mfctracker/commits.html" with commits=commits %}
       </div>
       <div class="row">
           <div class="col-md-12 text-center">
