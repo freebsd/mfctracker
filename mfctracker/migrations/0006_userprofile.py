@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('share_token', models.CharField(blank=True, max_length=30)),
                 ('mfc_basket', jsonfield.fields.JSONField(default=[])),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE,  related_name='profile', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.RunPython(create_profiles, do_nothing),

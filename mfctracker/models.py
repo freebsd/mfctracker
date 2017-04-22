@@ -7,7 +7,7 @@ import jsonfield
 
 class UserProfile(models.Model):
     '''User-specific data like basket, share URL, etc...'''
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     share_token = models.CharField(max_length=30, blank=True)
     mfc_basket = jsonfield.JSONField(default=[])
 
