@@ -136,6 +136,20 @@ def parse_x_mfc_with_alerts(commits, current_branch):
             alerts[commit.revision] = 'Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list)
     return alerts
 
+def _get_basket(request):
+    if request.user.is_authenticated():
+        basket = request.user.profile.mfc_basket
+    else:
+        basket = request.session.get('basket', [])
+    return basket
+
+def _set_basket(request, basket):
+    if request.user.is_authenticated():
+        request.user.profile.basket = basket
+        request.user.profile.save()
+    else:
+        request.session['basket'] = basket
+
 def index(request):
     default_pk = request.session.get('branch', None)
     if default_pk is None:
@@ -246,7 +260,7 @@ def mfcbasket(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
     trunk_branch = Branch.trunk()
     template = loader.get_template('mfctracker/mfcbasket.html')
-    revisions = request.session.get('basket', [])
+    revisions = _get_basket(request)
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     context = {}
@@ -259,7 +273,7 @@ def mfchelper(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
     trunk_branch = Branch.trunk()
     template = loader.get_template('mfctracker/mfc.html')
-    revisions = request.session.get('basket', [])
+    revisions = _get_basket(request)
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
     commit_msg = None
@@ -301,12 +315,12 @@ def mfchelper(request, branch_id):
 
 # MFC basket API
 def basket(request):
-    current_basket = request.session.get('basket', [])
+    current_basket = _get_basket(request)
     return JsonResponse({'basket': current_basket})
 
 @require_POST
 def addrevision(request):
-    current_basket = request.session.get('basket', [])
+    current_basket = _get_basket(request)
     revision = request.POST.get('revision', None)
     if not revision:
         return HttpResponseBadRequest()
@@ -317,13 +331,13 @@ def addrevision(request):
 
     if not revision in current_basket:
         current_basket.append(revision)
-        request.session['basket'] = current_basket
+    _set_basket(request, current_basket)
 
     return JsonResponse({'basket': current_basket})
 
 @require_POST
 def delrevision(request):
-    current_basket = request.session.get('basket', [])
+    current_basket = _get_basket(request)
     revision = request.POST.get('revision', None)
     if not revision:
         return HttpResponseBadRequest()
@@ -334,14 +348,14 @@ def delrevision(request):
 
     if revision in current_basket:
         current_basket.remove(revision)
-        request.session['basket'] = current_basket
+    _set_basket(request, current_basket)
 
     return JsonResponse({'basket': current_basket})
 
 @require_POST
 def clearbasket(request):
     current_basket = []
-    request.session['basket'] = current_basket
+    _set_basket(request, current_basket)
 
     return JsonResponse({'basket': current_basket})
 
@@ -381,12 +395,12 @@ def fix_commit_dependencies(request, revision):
 
     commit = get_object_or_404(Commit, revision=revision)
     mfc_with = get_mfc_requirements(commit.msg)
-    current_basket = request.session.get('basket', [])
+    current_basket = _get_basket(request)
 
     for dependency in mfc_with:
         if not dependency in current_basket:
             current_basket.append(dependency)
 
-    request.session['basket'] = current_basket
+    _set_basket(request, current_basket)
 
     return HttpResponse(status=204)
