@@ -132,7 +132,7 @@ def parse_x_mfc_with_alerts(commits):
         if len(missing) > 0:
             missing_list = ', '.join([str(x) for x in missing])
             plural = 'commits' if len(missing) > 1 else 'commit'
-            alerts.append('Revision {} should be MFCed with following {}: {}'.format(commit.revision, plural, missing_list))
+            alerts.append('Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list))
     return alerts
 
 def index(request):
