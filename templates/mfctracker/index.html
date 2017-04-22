@@ -90,7 +90,7 @@ $( document ).ready(function() {
 </div>
 
 <nav class="navbar navbar-default navbar-fixed-top">
-  <div class="container-fluid">
+  <div class="container">
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
@@ -116,10 +116,11 @@ $( document ).ready(function() {
   </div><!-- /.container-fluid -->
 </nav>
 
+
 <div class="container">
       <div class="row">
          <!-- Branch -->
-         <div class="col-md-2">
+         <div class="col-md-3">
            <div class="dropdown">
              <button class="btn btn-default dropdown-toggle" type="button" id="dropdownBranches" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                Target branch: <b>{{ current_branch.name }}</b>
@@ -133,7 +134,7 @@ $( document ).ready(function() {
            </div>
          </div>
 
-        <div class="col-md-10 text-right">
+        <div class="col-md-9 text-right">
 
           <form id="filtersform" class="form-inline" action="{% url 'setfilter' branch_id=current_branch.pk %}" method="POST">
             {% csrf_token %}
