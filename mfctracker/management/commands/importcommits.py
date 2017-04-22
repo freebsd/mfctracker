@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 
-from mfctracker.models import Commit, Branch, Change, CommitNote
+from mfctracker.models import Commit, Branch, Change
 
 def mergeinfo_ranges_to_set(mergeinfo_ranges):
     """Convert compact ranges representation to python set object"""
@@ -112,22 +112,6 @@ class Command(BaseCommand):
                         self.stdout.write('User does not exist, adding: {}'.format(entry.author))
                         user = User.objects.create_user(entry.author, email, password)
                     committers[entry.author] = user
-
-                # X-MFC makes sense only for trunk
-                if not b.trunk:
-                    continue
-                lines = entry.msg.split('\n')
-                notes = []
-                for line in lines:
-                    if re.match('^\s*x-mfc[^:]*:', line, flags=re.IGNORECASE):
-                        notes.append(line)
-                if len(notes) == 0:
-                    continue
-                note_text = "\n".join(notes)
-                user = committers[entry.author]
-                self.stdout.write('X-MFC note found for r{}'.format(entry.revision))
-                commit_note = CommitNote.create(commit, user, note_text)
-                commit_note.save()
 
             if branch_commits:
                 self.stdout.write('Imported {} commits, last revision is {}'.format(branch_commits, last_revision))
