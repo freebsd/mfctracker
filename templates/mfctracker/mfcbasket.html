@@ -70,13 +70,7 @@ $( document ).ready(function() {
       </div>
 
 {% else %}
-{% if alerts %}
-    <div class="row">
-  {% for alert in alerts %}
-      <div class="alert alert-warning">{{alert}}</div>
-  {% endfor %}
-    </div>
-{% endif %}
+      {% include "mfctracker/alerts.html" %}
       <div class="row">
         <div class="col-md-3">
           <form>

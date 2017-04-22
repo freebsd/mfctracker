@@ -122,7 +122,7 @@ def commit_msg_revisions(revisions):
     return ', '.join(result)
 
 def parse_x_mfc_with_alerts(commits):
-    alerts = []
+    alerts = {}
     revisions = [commit.revision for commit in commits]
     for commit in commits:
         # Remove ^MFC.*after:.*$
@@ -131,8 +131,8 @@ def parse_x_mfc_with_alerts(commits):
         missing = mfc_with - set(revisions)
         if len(missing) > 0:
             missing_list = ', '.join([str(x) for x in missing])
-            plural = 'commits' if len(missing) > 1 else 'commit'
-            alerts.append('Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list))
+            plural = 'commits are' if len(missing) > 1 else 'commit is'
+            alerts[commit.revision] = 'Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list)
     return alerts
 
 def index(request):
@@ -367,5 +367,25 @@ def comment_commit(request, revision):
         note, created = CommitNote.objects.get_or_create(commit=commit, user=request.user)
         note.text = request.POST.get('text', '')
         note.save()
+
+    return HttpResponse(status=204)
+
+
+@require_http_methods(["POST"])
+def fix_commit_dependencies(request, revision):
+    try:
+        revision = int(revision)
+    except ValueError:
+        return HttpResponseBadRequest()
+
+    commit = get_object_or_404(Commit, revision=revision)
+    mfc_with = get_mfc_requirements(commit.msg)
+    current_basket = request.session.get('basket', [])
+
+    for dependency in mfc_with:
+        if not dependency in current_basket:
+            current_basket.append(dependency)
+
+    request.session['basket'] = current_basket
 
     return HttpResponse(status=204)

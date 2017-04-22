@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),
     url(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
     url(r'^commit/(?P<revision>[0-9]+)/comment$', views.comment_commit, name='comment_commit'),
+    url(r'^commit/(?P<revision>[0-9]+)/fixdeps$', views.fix_commit_dependencies, name='fixdeps_commit'),
     url('^', include('django.contrib.auth.urls')),
 ]
 

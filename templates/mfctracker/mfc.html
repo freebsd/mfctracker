@@ -65,13 +65,7 @@ $( document ).ready(function() {
 {% include "mfctracker/navbar.html" %}
 
 <div class="container">
-{% if alerts %}
-<div class="row">
-  {% for alert in alerts %}
-  <div class="alert alert-warning">{{alert}}</div>
-  {% endfor %}
-</div>
-{% endif %}
+    {% include "mfctracker/alerts.html" %}
 {% if empty %}
       <div class="row text-center">
           <h2>No MFC commits</h2>

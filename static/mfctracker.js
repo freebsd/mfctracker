@@ -76,3 +76,11 @@ MFC.deleteComment = function(revision, success) {
         success: success
     });
 }
+
+MFC.fixDependencies = function(revision, success) {
+    $.ajax({
+        url: "/commit/" + revision + "/fixdeps",
+        type: 'POST',
+        success: success
+    });
+}
