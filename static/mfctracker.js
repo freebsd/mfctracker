@@ -19,7 +19,9 @@ MFC.setupCommitActionButtons = function() {
         var action = $(element).find("#action")[0];
         var icon = $(action).find(".glyphicon")[0];
 		var revision = $(element).attr('revision');
+        var inbasket = false;
 		if (MFC.basket.includes(revision)) {
+            inbasket = true;
 			$(icon).addClass('inbasket');
 			$(action).off("click").click(function(e) {
 				MFC.delRevision(revision);
@@ -32,7 +34,8 @@ MFC.setupCommitActionButtons = function() {
 			});
 		}
 
-        if ($(element).hasClass('mfcdone')) {
+        // Just to make sure we can delete MFC-ed commits from basket
+        if ($(element).hasClass('mfcdone') && !inbasket) {
             $(action).addClass('hide');
         }
         else {
