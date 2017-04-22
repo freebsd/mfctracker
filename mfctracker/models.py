@@ -1,7 +1,22 @@
-from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils.crypto import get_random_string
 
 import jsonfield
+
+class UserProfile(models.Model):
+    '''User-specific data like basket, share URL, etc...'''
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    share_token = models.CharField(max_length=30, blank=True)
+    mfc_basket = jsonfield.JSONField(default=[])
+
+    @classmethod
+    def create(cls, user):
+        obj = cls()
+        obj.user = user
+        obj.share_token = get_random_string(length=8)
+        return obj
 
 class Branch(models.Model):
     """Branch info"""
