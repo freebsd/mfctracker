@@ -226,6 +226,19 @@ def branch(request, branch_id):
 
     return HttpResponse(template.render(context, request))
 
+
+def mfcbasket(request, branch_id):
+    current_branch = get_object_or_404(Branch, pk=branch_id)
+    trunk_branch = Branch.trunk()
+    template = loader.get_template('mfctracker/mfcbasket.html')
+    revisions = request.session.get('basket', [])
+    revisions.sort()
+    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    context = {}
+    context['commits'] = commits
+    context['current_branch'] = current_branch
+    return HttpResponse(template.render(context, request))
+
 def mfchelper(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
     trunk_branch = Branch.trunk()

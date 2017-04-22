@@ -1,0 +1,99 @@
+{% extends "mfctracker/base.html" %}
+
+{% load static %}
+{% load bootstrap3 %}
+
+{% block head %}
+<script>
+function SelectText(text) {
+    var doc = document
+        , range, selection
+    ;    
+    if (doc.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(text);
+        range.select();
+    } else if (window.getSelection) {
+        selection = window.getSelection();        
+        range = document.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+
+$( document ).ready(function() {
+    $(".select").each(function(index, element) {
+        $(element).tooltip();
+		$(element).click(function() {
+			SelectText($($(element).attr("target"))[0]);
+		});
+	});
+    $("button#confirm").click(function() {
+		$.post( "/mfcbasket/clear", function (data) {
+        	window.location.href = '/';
+		});
+	});
+
+    $("#clearmfc").click(function() {
+    	$('div#confirm').modal({ backdrop: 'static', keyboard: false });
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="modal fade" tabindex="-1" role="dialog" id="confirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Clear MFC Basket</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete all revisions from MFC basket?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirm">Clear</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+          <li><a href="/"><span class="glyphicon glyphicon-arrow-left"></span> Back</a></li>
+      </ul>
+      <form class="navbar-form navbar-right" action="/">
+        {% csrf_token %}
+        <a role="button" class="btn btn-danger {% if empty %}disabled{% endif %}" id="clearmfc">Clear</a>
+      </form>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+
+<div class="container">
+{% if alerts %}
+<div class="row">
+  {% for alert in alerts %}
+  <div class="alert alert-warning">{{alert}}</div>
+  {% endfor %}
+</div>
+{% endif %}
+{% if empty %}
+      <div class="row text-center">
+          <h2>No MFC commits</h2>
+      </div>
+
+{% else %}
+      <div class="row">
+          {% include "mfctracker/commits.html" %}
+      </div>
+{% endif %}
+</div>
+{% endblock %}

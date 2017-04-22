@@ -5,45 +5,10 @@
 {% block head %}
 <script>
 $( document ).ready(function() {
-	MFC.fetchBasket();
-
     $("#setfilter").click(function() {
         $('input[name="extended_filters"]').val($("#extended_filters_edit").val());
         $("#filtersform").submit();
     });
-
-    $('#commentModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget) // Button that triggered the modal
-      var revision = button.data('revision') // Extract info from data-* attributes
-      var modal = $(this)
-      modal.find('label').text('Comment for r' + revision + ':')
-      // modal.find('.modal-body input').val(recipient)
-      var text = modal.find('#text');
-      var savecomment = modal.find('#savecomment');
-      var deletecomment = modal.find('#deletecomment');
-      var note = $('#note-text-' + revision);
-      $(text).val(($(note).text()));
-
-      $(savecomment).off("click").click(function(e) {
-          var comment = $(text).val();
-          MFC.updateComment(revision, comment, function (data) {
-              console.log('posted');
-              $(note).text(comment);
-              $('.note-' + revision).removeClass('hide');
-              $(modal).modal('toggle')
-          });
-      });
-
-      $(deletecomment).off("click").click(function(e) {
-          MFC.deleteComment(revision, function (data) {
-              console.log('deleted');
-              $(note).text('');
-              $('.note-' + revision).addClass('hide');
-              $(modal).modal('toggle')
-          });
-      });
-    })
-});
 </script>
 {% endblock %}
 
@@ -92,7 +57,7 @@ $( document ).ready(function() {
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li><a href="{% url 'mfchelper' branch_id=current_branch.pk %}">MFC Basket <span class="badge" id="mfccount">0</span></a></li>
+        <li><a href="{% url 'mfcbasket' branch_id=current_branch.pk %}">MFC Basket <span class="badge" id="mfccount">0</span></a></li>
       </ul>
       {% if user.is_authenticated %}
           <ul class="nav navbar-nav navbar-right">
@@ -160,7 +125,7 @@ $( document ).ready(function() {
       <div class="row">
       </div>
       <div class="row">
-          {% include "mfctracker/commits.html" with commits=commits %}
+          {% include "mfctracker/commits.html" %}
       </div>
       <div class="row">
           <div class="col-md-12 text-center">
