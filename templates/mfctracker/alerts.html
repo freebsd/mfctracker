@@ -1,0 +1,18 @@
+<script>
+$( document ).ready(function() {
+    $(".depsfix").each(function(index, element) {
+		$(element).click(function() {
+            MFC.fixDependencies($(element).data('revision'), function(data) {
+                location.reload();
+            });
+		});
+	});
+});
+</script>
+{% if alerts %}
+    <div class="row">
+  {% for rev, alert in alerts.items %}
+  <div class="alert alert-warning"><a class="btn btn-default pull-right btn-xs btn-warning depsfix" role="button" data-revision="{{rev}}">Fix dependencies</a>{{alert}}</div>
+  {% endfor %}
+    </div>
+{% endif %}
