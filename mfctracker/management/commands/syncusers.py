@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.crypto import get_random_string
 
-from mfctracker.models import Commit
+from mfctracker.models import Commit, UserProfile
 
 class Command(BaseCommand):
     help = 'Create users for every known committer'
@@ -13,6 +13,8 @@ class Command(BaseCommand):
         for committer in committers:
             try:
                 user = User.objects.get(username=committer)
+                profile = UserProfile.objects.create(share_token=get_random_string(length=8), user=user)
+                profile.save()
             except User.DoesNotExist:
                 email = '{}@{}'.format(committer, settings.SVN_EMAIL_DOMAIN)
                 password = get_random_string(length=32)
