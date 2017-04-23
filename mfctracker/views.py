@@ -147,7 +147,7 @@ def _get_basket(request):
 
 def _set_basket(request, basket):
     if request.user.is_authenticated():
-        request.user.profile.basket = basket
+        request.user.profile.mfc_basket = basket
         request.user.profile.save()
     else:
         request.session['basket'] = basket
