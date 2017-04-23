@@ -15,7 +15,6 @@ from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 from .models import Branch, Commit, CommitNote
-from .utils import get_mfc_requirements
 
 def svn_range_to_arg(start, end):
     if start == end:
@@ -131,7 +130,7 @@ def parse_x_mfc_with_alerts(commits, current_branch):
     for commit in commits:
         # Remove ^MFC.*after:.*$
         msg = commit.msg
-        mfc_with = get_mfc_requirements(commit.msg)
+        mfc_with = set(commit.mfc_with.all().values_list('revision', flat=True))
         merged = set(current_branch.merges.filter(revision__in=mfc_with).values_list('revision', flat=True))
         missing = mfc_with - set(revisions) - merged
         if len(missing) > 0:
@@ -183,7 +182,7 @@ def branch(request, branch_id):
     template = loader.get_template('mfctracker/index.html')
     trunk = Branch.trunk()
     branches = Branch.maintenance().order_by('-branch_revision', '-name')
-    query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
+    query = trunk.commits.filter(revision__gt=current_branch.branch_revision).filter(msg__iregex='.*X-MFC-With.*')
 
     filters = request.session.get('filters', None)
     filter_waiting = request.session.get('filter_waiting', False)
@@ -423,7 +422,7 @@ def fix_commit_dependencies(request, revision):
         return HttpResponseBadRequest()
 
     commit = get_object_or_404(Commit, revision=revision)
-    mfc_with = get_mfc_requirements(commit.msg)
+    mfc_with = set(commit.mfc_with.all().values_list('revision', flat=True))
     current_basket = _get_basket(request)
 
     for dependency in mfc_with:

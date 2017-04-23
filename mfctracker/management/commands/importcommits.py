@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 
 from mfctracker.models import Commit, Branch, Change
+from mfctracker.utils import get_mfc_requirements
 
 def mergeinfo_ranges_to_set(mergeinfo_ranges):
     """Convert compact ranges representation to python set object"""
@@ -66,7 +67,7 @@ class Command(BaseCommand):
         committers = {}
 
         if branch is None:
-            branches = list(Branch.objects.all())
+            branches = list(Branch.objects.all().order_by('-is_trunk'))
         else:
             branches = [ Branch.objects.get(name=branch) ]
 
@@ -85,6 +86,7 @@ class Command(BaseCommand):
             log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision, limit=limit, changelist=True)))
             branch_commits = 0
             last_revision = 0
+            mfc_with = {}
             for entry in log_entries:
                 # Do not include last_revision in subsequent imports
                 if entry.revision <= b.last_revision:
@@ -102,6 +104,10 @@ class Command(BaseCommand):
                     change.save()
                 branch_commits += 1
                 last_revision = max(last_revision, entry.revision)
+                if b.is_trunk:
+                    deps = get_mfc_requirements(entry.msg)
+                    if len(deps) > 0:
+                        mfc_with[entry.revision] = deps
 
                 if not committers.has_key(entry.author):
                     try:
@@ -109,9 +115,17 @@ class Command(BaseCommand):
                     except User.DoesNotExist:
                         email = '{}@{}'.format(entry.author, settings.SVN_EMAIL_DOMAIN)
                         password = get_random_string(length=32)
-                        self.stdout.write('User does not exist, adding: {}'.format(entry.author))
                         user = User.objects.create_user(entry.author, email, password)
                     committers[entry.author] = user
+
+            for revision, deps in mfc_with.iteritems():
+                commit = Commit.objects.get(revision=revision)
+                for dep in deps:
+                    try:
+                        dep_commit = Commit.objects.get(revision=dep)
+                        commit.mfc_with.add(dep_commit)
+                    except Commit.DoesNotExist:
+                        self.stdout.write(self.style.ERROR('r{} has r{} in X-MFC-With list but it does not exist'.format(entry.revision, revision)))
 
             if branch_commits:
                 self.stdout.write('Imported {} commits, last revision is {}'.format(branch_commits, last_revision))

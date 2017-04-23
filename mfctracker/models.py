@@ -61,6 +61,7 @@ class Commit(models.Model):
     msg = models.TextField() 
     merged_to = models.ManyToManyField(Branch, blank=True, related_name='merges')
     branch = models.ForeignKey(Branch, null=True, on_delete=models.SET_NULL, related_name='commits')
+    mfc_with = models.ManyToManyField("self", blank=True)
 
     @classmethod
     def create(cls, revision, author, date, msg):
