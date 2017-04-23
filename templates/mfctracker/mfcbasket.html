@@ -64,15 +64,26 @@ $( document ).ready(function() {
 {% else %}
       {% include "mfctracker/alerts.html" %}
       <div class="row">
-        <div class="col-md-3">
-          <form>
-            {% csrf_token %}
-            <a role="button" class="btn btn-danger {% if empty %}disabled{% endif %}" id="clearmfc">Clear</a>
-          </form>
+        <div class="col-md-6">
+           <div class="dropdown">
+             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownBranches" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+               Target branch: <b>{{ current_branch.name }}</b>
+               <span class="caret"></span>
+             </button>
+             <ul class="dropdown-menu" aria-labelledby="dropdownBranches">
+               {% for branch in branches %}
+               <li><a href="{% url 'mfcbasket' branch_id=branch.pk %}">{{ branch.name }}</a></li>
+               {% endfor %}
+             </ul>
+           </div>
         </div>
-        <div class="col-md-9 text-right">
-            <a role="button" class="btn btn-default" data-toggle="modal" data-target="#shareModal">Share</a>
-            <a role="button" class="btn btn-primary {% if empty %}disabled{% endif %}" id="mfchelper" href="{% url 'mfchelper' branch_id=current_branch.pk %}">SVN helper</a>
+        <div class="col-md-6 text-right">
+            <form>
+            <a role="button" class="btn btn-danger {% if empty %}disabled{% endif %}" id="clearmfc"><i class="glyphicon glyphicon-trash"></i> Clear</a>
+            <a role="button" class="btn btn-default disabled" onclick="location.reload();"><i class="glyphicon glyphicon-refresh"></i> Refresh</a>
+            <a role="button" class="btn btn-default" data-toggle="modal" data-target="#shareModal"><i class="glyphicon glyphicon-share"></i> Share</a>
+            <a role="button" class="btn btn-primary {% if empty %}disabled{% endif %}" id="mfchelper" href="{% url 'mfchelper' branch_id=current_branch.pk %}">SVN Helper</a>
+            </form>
         </div>
       </div>
       <div class="row">
