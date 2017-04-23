@@ -140,7 +140,7 @@ def parse_x_mfc_with_alerts(commits, current_branch):
 
 def _get_basket(request):
     if request.user.is_authenticated():
-        basket = request.user.profile.mfc_basket
+        basket = list(request.user.profile.mfc_basket)
     else:
         basket = request.session.get('basket', [])
     return basket
