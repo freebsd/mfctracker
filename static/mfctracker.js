@@ -1,6 +1,12 @@
 var MFC = MFC || {};
 
 MFC.basket = [];
+MFC.origBasket = undefined;
+
+// compare arrays
+MFC.isSameSet = function( arr1, arr2 ) {
+      return  $( arr1 ).not( arr2 ).length === 0 && $( arr2 ).not( arr1 ).length === 0;  
+}
 
 MFC.addRevision = function(revision) {
 	$.post( "/mfcbasket/add", { 'revision': revision }, function (data) {
@@ -46,6 +52,17 @@ MFC.setupCommitActionButtons = function() {
 
 MFC.updateBasket = function(data) {
 	MFC.basket = data['basket'].map(function(v) { return v.toString(); });
+    if (MFC.origBasket) {
+        if (MFC.isSameSet(MFC.origBasket, MFC.basket)) {
+            $("#refreshbasket").addClass('disabled');
+        }
+        else {
+            $("#refreshbasket").removeClass('disabled');
+        }
+    }
+    else {
+        MFC.origBasket = MFC.basket;
+    }
 	$("#mfccount").html(MFC.basket.length);
 	MFC.setupCommitActionButtons();
 }

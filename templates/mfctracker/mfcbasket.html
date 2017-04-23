@@ -80,7 +80,7 @@ $( document ).ready(function() {
         <div class="col-md-6 text-right">
             <form>
             <a role="button" class="btn btn-danger {% if empty %}disabled{% endif %}" id="clearmfc"><i class="glyphicon glyphicon-trash"></i> Clear</a>
-            <a role="button" class="btn btn-default disabled" onclick="location.reload();"><i class="glyphicon glyphicon-refresh"></i> Refresh</a>
+            <a role="button" class="btn btn-default disabled" id="refreshbasket" onclick="location.reload();"><i class="glyphicon glyphicon-refresh"></i> Refresh</a>
             <a role="button" class="btn btn-default" data-toggle="modal" data-target="#shareModal"><i class="glyphicon glyphicon-share"></i> Share</a>
             <a role="button" class="btn btn-primary {% if empty %}disabled{% endif %}" id="mfchelper" href="{% url 'mfchelper' branch_id=current_branch.pk %}">SVN Helper</a>
             </form>
