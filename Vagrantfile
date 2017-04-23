@@ -30,6 +30,7 @@ Vagrant.configure(2) do |config|
     su vagrant -c "virtualenv ~/.venv/mfctracker"
     echo "set mouse=" > ~vagrant/.vimrc
     chown vagrant ~vagrant/.vimrc
+    echo "setenv DJANGO_SETTINGS_MODULE mfctracker.settings.development" >> ~vagrant/.cshrc
     echo "source ~vagrant/.venv/mfctracker/bin/activate.csh" >> ~vagrant/.cshrc
     su vagrant -c "pip install -r /app/requirements-dev.txt"
   SHELL
