@@ -36,6 +36,21 @@
   </div>
 </div>
 
+<div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+          <pre id="share_link">{{share_url}}</pre>
+      </div>
+      <div class="modal-footer">
+		<button type="button" class="btn btn-primary pull-left" aria-label="Generate" id="generatetoken">Generate</button>
+        <button type="button" target="#share_link" class="btn btn-default select"> <i class="glyphicon glyphicon-copy"></i> Select</button> 
+		<button type="button" class="btn btn-default" data-dismiss="modal" aria-label="Cancel Comment" id="cancelshare">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" tabindex="-1" role="dialog" id="confirm">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

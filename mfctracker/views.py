@@ -2,8 +2,10 @@ from datetime import date
 import re
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, get_object_or_404
@@ -263,9 +265,34 @@ def mfcbasket(request, branch_id):
     revisions = _get_basket(request)
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    if request.user.is_authenticated:
+        share_uri = reverse('mfcshare', kwargs={
+            'username': request.user.username,
+            'token': request.user.profile.share_token,
+            'branch_id': current_branch.pk,
+        })
+        share_url = request.build_absolute_uri(share_uri)
+    else:
+        share_url = ''
     context = {}
     context['commits'] = commits
+    context['share_url'] = share_url
     context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
+    context['current_branch'] = current_branch
+    return HttpResponse(template.render(context, request))
+
+
+def mfcshare(request, branch_id, username, token):
+    current_branch = get_object_or_404(Branch, pk=branch_id)
+    trunk_branch = Branch.trunk()
+    user = get_object_or_404(User, username=username, profile__share_token=token)
+    template = loader.get_template('mfctracker/mfcshare.html')
+    revisions = user.profile.mfc_basket
+    revisions.sort()
+    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    context = {}
+    context['commits'] = commits
+    context['username'] = username
     context['current_branch'] = current_branch
     return HttpResponse(template.render(context, request))
 
