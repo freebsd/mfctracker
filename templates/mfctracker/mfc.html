@@ -52,15 +52,7 @@ $( document ).ready(function() {
       </div>
 {% else %}
       <div class="row">
-        <div class="col-md-3">
-          <form>
-            {% csrf_token %}
-            <a role="button" class="btn btn-danger {% if empty %}disabled{% endif %}" id="clearmfc">Clear</a>
-          </form>
-        </div>
-        <div class="col-md-9 text-right">
-            <a role="button" class="btn btn-primary {% if empty %}disabled{% endif %}" id="mfchelper" href="{% url 'mfcbasket' branch_id=current_branch.pk %}">Manage MFC</a>
-        </div>
+        <a href="{% url 'mfcbasket' branch_id=current_branch.pk %}"><span class="glyphicon glyphicon-arrow-left"></span> Back</a>
       </div>
 
       <div class="row">
