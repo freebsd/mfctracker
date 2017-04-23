@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^(?P<branch_id>[0-9]+)/$', views.branch, name='branch'),
     url(r'^(?P<branch_id>[0-9]+)/setfilter$', views.setfilter, name='setfilter'),
+    url(r'^(?P<branch_id>[0-9]+)/newtoken$', views.generate_new_token, name='newtoken'),
     url(r'^(?P<branch_id>[0-9]+)/mfc$', views.mfcbasket, name='mfcbasket'),
     url(r'^(?P<branch_id>[0-9]+)/mfc/helper$', views.mfchelper, name='mfchelper'),
     url(r'^(?P<branch_id>[0-9]+)/mfc/(?P<username>[a-z0-9]+)/(?P<token>.+)$', views.mfcshare, name='mfcshare'),

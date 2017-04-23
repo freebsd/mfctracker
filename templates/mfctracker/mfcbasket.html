@@ -38,6 +38,18 @@ $( document ).ready(function() {
     $("#clearmfc").click(function() {
     	$('div#confirm').modal({ backdrop: 'static', keyboard: false });
     });
+
+
+    $('#shareModal').on('show.bs.modal', function (event) {
+      var modal = $(this)
+      var generate = modal.find('#generatetoken');
+      var share_link = modal.find('#share_link');
+      $(generate).off("click").click(function(e) {
+          MFC.generateShareToken({{current_branch.pk}}, function(data) {
+              $(share_link).text(data['url']);
+          });
+      });
+    })
 });
 </script>
 {% endblock %}

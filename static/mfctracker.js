@@ -87,3 +87,11 @@ MFC.fixDependencies = function(revision, success) {
         success: success
     });
 }
+
+MFC.generateShareToken = function(branch_id, success) {
+    $.ajax({
+        url: "/" + branch_id + "/newtoken",
+        type: 'POST',
+        success: success
+    });
+}

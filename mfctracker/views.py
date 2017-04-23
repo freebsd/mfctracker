@@ -2,6 +2,7 @@ from datetime import date
 import re
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -10,6 +11,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, get_object_or_404
 from django.template import loader
+from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 from .models import Branch, Commit, CommitNote
@@ -387,10 +389,8 @@ def clearbasket(request):
     return JsonResponse({'basket': current_basket})
 
 @require_http_methods(["POST", "DELETE"])
+@login_required
 def comment_commit(request, revision):
-    if not request.user.is_authenticated():
-        raise PermissionDenied
-
     try:
         revision = int(revision)
     except ValueError:
@@ -431,3 +431,17 @@ def fix_commit_dependencies(request, revision):
     _set_basket(request, current_basket)
 
     return HttpResponse(status=204)
+
+
+@require_http_methods(["POST"])
+@login_required
+def generate_new_token(request, branch_id):
+    request.user.profile.share_token = get_random_string(length=8)
+    request.user.profile.save()
+    share_uri = reverse('mfcshare', kwargs={
+        'username': request.user.username,
+        'token': request.user.profile.share_token,
+        'branch_id': branch_id
+    })
+    share_url = request.build_absolute_uri(share_uri)
+    return JsonResponse({'url': share_url})
