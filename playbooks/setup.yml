@@ -87,3 +87,8 @@
     - name: fix permissions for manage.py wrapper
       file: path=/usr/local/bin/mfctracker-manage
             mode=0755
+
+    - name: Start nginx
+      service:
+        name: nginx
+        state: started
