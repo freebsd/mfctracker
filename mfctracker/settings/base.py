@@ -12,9 +12,25 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os.path as op
 import os
+from django.utils.crypto import get_random_string
+
+import environ
+
+GLOBAL_ENV = '/usr/local/etc/mfctracker.env'
+LOCAL_ENV = 'env'
+
+root = environ.Path(__file__) - 4 # three folder back (/a/b/c/ - 3 = /)
+env = environ.Env()
+
+SECRET_KEY = env('SECRET_KEY', default=get_random_string(length=40))
+
+if os.path.exists(GLOBAL_ENV):
+       environ.Env.read_env(GLOBAL_ENV)
+if os.path.exists(root(LOCAL_ENV)):
+       environ.Env.read_env(root(LOCAL_ENV))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = op.abspath(op.join(__file__, op.pardir, op.pardir, op.pardir))
+BASE_DIR = root()
 
 ALLOWED_HOSTS = []
 
@@ -88,3 +104,11 @@ SVN_BASE_URL = 'http://svn.freebsd.org/base'
 VIEWVC_REVISION_URL = 'http://svnweb.freebsd.org/changeset/base/{revision}'
 
 TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
+
+EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://localhost:25')
+
+vars().update(EMAIL_CONFIG)
+
+DATABASES = {
+    'default': env.db(default='pgsql://localhost/mfctracker'),
+}

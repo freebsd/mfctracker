@@ -4,13 +4,6 @@ SECRET_KEY = 'o4c6#^(x44smd70-4=yghiguu25m^89bmtsufxqpn-!e(gqoy8'
 
 DEBUG = True
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mfctracker_dev',
-    }
-}
-
 INSTALLED_APPS += [ 'debug_toolbar' ]
 MIDDLEWARE = [ 'debug_toolbar.middleware.DebugToolbarMiddleware' ] + MIDDLEWARE
 
