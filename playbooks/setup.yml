@@ -77,3 +77,13 @@
       template:
         src: "templates/supervisord.conf"
         dest: "/usr/local/etc/supervisord.conf"
+
+    - name: copy manage.py wrapper config
+      become: true
+      copy:
+        src: files/mfctracker-manage
+        dest: /usr/local/bin/mfctracker-manage
+
+    - name: fix permissions for manage.py wrapper
+      file: path=/usr/local/bin/mfctracker-manage
+            mode=0755

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+BASEDIR=/usr/local/mfctracker
+
+if [ ! -d "${BASEDIR}/latest/venv" ]; then
+    echo "mfctracker app is not deployed, check ${BASEDIR}/latest"
+    exit 2
+fi
+
+. ${BASEDIR}/latest/venv/bin/activate
+python ${BASEDIR}/latest/app/manage.py $*
