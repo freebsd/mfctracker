@@ -265,7 +265,7 @@ def mfcbasket(request, branch_id):
     template = loader.get_template('mfctracker/mfcbasket.html')
     revisions = _get_basket(request)
     revisions.sort()
-    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    commits = Commit.objects.filter(revision__in=revisions).order_by("-revision")
     if request.user.is_authenticated:
         share_uri = reverse('mfcshare', kwargs={
             'username': request.user.username,
