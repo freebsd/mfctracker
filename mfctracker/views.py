@@ -182,7 +182,7 @@ def branch(request, branch_id):
     template = loader.get_template('mfctracker/index.html')
     trunk = Branch.trunk()
     branches = Branch.maintenance().order_by('-branch_revision', '-name')
-    query = trunk.commits.filter(revision__gt=current_branch.branch_revision).filter(msg__iregex='.*X-MFC-With.*')
+    query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
 
     filters = request.session.get('filters', None)
     filter_waiting = request.session.get('filter_waiting', False)
