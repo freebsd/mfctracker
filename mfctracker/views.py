@@ -390,8 +390,12 @@ def clearbasket(request):
     return JsonResponse({'basket': current_basket})
 
 @require_http_methods(["POST", "DELETE"])
-@login_required
 def comment_commit(request, revision):
+    # can't use login_required because it's API call
+    # @login_required redirects to login page with 302 result code
+    if not request.user.is_authenticated():
+        raise PermissionDenied
+
     try:
         revision = int(revision)
     except ValueError:
