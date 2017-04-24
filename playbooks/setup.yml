@@ -18,6 +18,7 @@
         - py27-virtualenv
         - py27-supervisor
         - py27-psycopg2
+        - subversion
 
     - name: enable services
       service:
