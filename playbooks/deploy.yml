@@ -19,7 +19,7 @@
       register: git_info
 
     - name: set version path 
-      set_fact: version_path="{{version_base}}/{{version}}-{{ git_info.after[0:7] }}-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+      set_fact: version_path="{{version_base}}/{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}-{{version}}-{{ git_info.after[0:7] }}"
 
     - name: create version directory
       file: path="{{version_path}}"
