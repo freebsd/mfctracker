@@ -10,8 +10,16 @@
       venv_path: "{{version_path}}/venv"
 
   tasks:
+
+    - name: Get SHA1 for the version name
+      git:
+        repo: https://github.com/gonzoua/mfctracker.git
+        version: "{{version}}"
+        clone: no
+      register: git_info
+
     - name: set version path 
-      set_fact: version_path="{{version_base}}/{{version}}-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+      set_fact: version_path="{{version_base}}/{{version}}-{{ git_info.after[0:7] }}-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
 
     - name: create version directory
       file: path="{{version_path}}"
@@ -36,13 +44,19 @@
     - debug:
         msg: pip_result
 
+    - name: Switch nginx to maintenance mode
+      become: true
+      copy:
+        src: files/maintenance.html
+        dest: "{{version_base}}/html/maintenance.html"
+
     - name: Stop supervisord
       service:
         name: supervisord
         state: stopped
 
-    # - name: migrate
-    #   django_manage: command=migrate app_path="{{app_path}}" virtualenv="{{venv_path}}"
+    - name: migrate
+      django_manage: command=migrate app_path="{{app_path}}" virtualenv="{{venv_path}}"
 
     - name: fix ownership
       file:
@@ -63,3 +77,6 @@
       service:
         name: supervisord
         state: started
+
+    - name: remove maintenance page
+      file: path="{{version_base}}/html/maintenance.html" state=absent
