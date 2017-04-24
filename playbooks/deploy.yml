@@ -1,0 +1,65 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+  vars:
+      ansible_python_interpreter: /usr/local/bin/python2.7
+      version_base: /usr/local/mfctracker
+      version: master
+      app_path: "{{version_path}}/app"
+      venv_path: "{{version_path}}/venv"
+
+  tasks:
+    - name: set version path 
+      set_fact: version_path="{{version_base}}/{{version}}-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+    - name: create version directory
+      file: path="{{version_path}}"
+            state=directory
+            mode=0755
+
+    - name: Checkout latest version of mfctracker source code
+      git:
+        repo: https://github.com/gonzoua/mfctracker.git
+        version: "{{version}}"
+        dest: "{{app_path}}"
+
+    - name: create venv directory
+      file: path="{{venv_path}}" state=directory mode=0755
+
+    - name: install requirements
+      pip:
+        requirements: "{{app_path}}/requirements.txt"
+        virtualenv: "{{venv_path}}"
+      register: pip_result
+
+    - debug:
+        msg: pip_result
+
+    - name: Stop supervisord
+      service:
+        name: supervisord
+        state: stopped
+
+    # - name: migrate
+    #   django_manage: command=migrate app_path="{{app_path}}" virtualenv="{{venv_path}}"
+
+    - name: fix ownership
+      file:
+        path: "{{version_path}}"
+        owner: mfctracker
+        group: mfctracker
+        recurse: yes
+
+    - name: create symlink to latest version
+      file:
+        src: "{{version_path}}"
+        dest: "{{version_base}}/latest"
+        state: link
+        owner: mfctracker
+        group: mfctracker
+
+    - name: Start supervisord
+      service:
+        name: supervisord
+        state: started

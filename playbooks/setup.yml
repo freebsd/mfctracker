@@ -1,0 +1,78 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+  vars:
+      ansible_python_interpreter: /usr/local/bin/python2.7
+      version_base: /usr/local/mfctracker
+      app_path: "{{version_base}}/latest/app"
+      venv_path: "{{version_base}}/latest/venv"
+  tasks:
+    - name: install packages
+      pkgng: name={{item}} state=present
+      with_items:
+        - postgresql93-server
+        - nginx
+        - uwsgi
+        - git
+        - py27-virtualenv
+        - py27-supervisor
+        - py27-psycopg2
+
+    - name: enable services
+      service:
+        name: "{{item}}"
+        enabled: true
+      with_items:
+        - postgresql
+        - nginx
+        - supervisord
+
+    - name: Start database
+      service:
+        name: postgresql
+        state: started
+
+    - name: initiate database
+      command: service postgresql initdb
+               creates=/usr/local/pgsql/data/postgresql.conf
+
+    - name: Create databases
+      postgresql_db: name='mfctracker'
+                     encoding='UTF-8'
+                     lc_collate='en_US.UTF-8'
+                     lc_ctype='en_US.UTF-8'
+                     template='template0'
+                     login_user=pgsql
+
+    - name: Create DB user
+      postgresql_user: name=mfctracker
+                       password=mfctracker
+                       state=present
+                       login_user=pgsql
+                       db=mfctracker
+                       priv=ALL
+                       role_attr_flags=CREATEDB
+
+    - name: create user
+      user:
+        name: mfctracker
+        comment: "mfctracker user"
+
+    - name: create version base directory
+      file: path="{{version_base}}"
+            state=directory
+            mode=0755
+            owner=mfctracker
+            group=mfctracker
+
+    - name: configure nginx
+      template:
+        src: "templates/nginx.conf"
+        dest: "/usr/local/etc/nginx/nginx.conf"
+
+
+    - name: configure supervisor
+      template:
+        src: "templates/supervisord.conf"
+        dest: "/usr/local/etc/supervisord.conf"
