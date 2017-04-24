@@ -44,6 +44,17 @@
     - debug:
         msg: pip_result
 
+    - name: De-activate sync cron job
+      cron:
+        name: "mfctracker sync"
+        user: mfctracker
+        state: absent
+
+    - name: Wait for sync script to finish
+      wait_for:
+        path: /var/tmp/mfctracker.sync.lock
+        state: absent
+
     - name: Switch nginx to maintenance mode
       become: true
       copy:
@@ -80,3 +91,11 @@
 
     - name: remove maintenance page
       file: path="{{version_base}}/html/maintenance.html" state=absent
+
+
+    - name: Activate sync cron job
+      cron:
+        name: "mfctracker sync"
+        user: mfctracker
+        minute: "*/7"
+        job: "{{version_base}}/latest/app/scripts/sync.sh"
