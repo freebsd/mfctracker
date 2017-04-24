@@ -67,6 +67,13 @@
             owner=mfctracker
             group=mfctracker
 
+    - name: create directory for cross-version files
+      file: path="{{version_base}}/html"
+            state=directory
+            mode=0755
+            owner=mfctracker
+            group=mfctracker
+
     - name: configure nginx
       template:
         src: "templates/nginx.conf"
