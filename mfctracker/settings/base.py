@@ -108,6 +108,7 @@ TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
 EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://localhost:25')
 
 vars().update(EMAIL_CONFIG)
+DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL', default='mfctracker@localhost')
 
 DATABASES = {
     'default': env.db(default='pgsql://mfctracker@localhost/mfctracker'),
