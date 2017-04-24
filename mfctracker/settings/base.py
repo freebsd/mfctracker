@@ -19,7 +19,7 @@ import environ
 GLOBAL_ENV = '/usr/local/etc/mfctracker.env'
 LOCAL_ENV = 'env'
 
-root = environ.Path(__file__) - 4 # three folder back (/a/b/c/ - 3 = /)
+root = environ.Path(__file__) - 3 # three folder back (/a/b/c/ - 3 = /)
 env = environ.Env()
 
 SECRET_KEY = env('SECRET_KEY', default=get_random_string(length=40))
