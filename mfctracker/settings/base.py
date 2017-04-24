@@ -110,5 +110,5 @@ EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://localhost:25')
 vars().update(EMAIL_CONFIG)
 
 DATABASES = {
-    'default': env.db(default='pgsql://localhost/mfctracker'),
+    'default': env.db(default='pgsql://mfctracker@localhost/mfctracker'),
 }
