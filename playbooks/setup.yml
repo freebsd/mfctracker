@@ -28,14 +28,14 @@
         - nginx
         - supervisord
 
+    - name: Initilize database
+      command: /usr/local/etc/rc.d/postgresql initdb
+               creates=/usr/local/pgsql/data/postgresql.conf
+
     - name: Start database
       service:
         name: postgresql
         state: started
-
-    - name: initiate database
-      command: service postgresql initdb
-               creates=/usr/local/pgsql/data/postgresql.conf
 
     - name: Create databases
       postgresql_db: name='mfctracker'
