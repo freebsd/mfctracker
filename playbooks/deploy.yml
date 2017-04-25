@@ -106,4 +106,4 @@
         name: "mfctracker sync"
         user: mfctracker
         minute: "*/7"
-        job: "{{version_base}}/latest/app/scripts/sync.sh"
+        job: "{{version_base}}/latest/app/scripts/sync.sh -l 1000"
