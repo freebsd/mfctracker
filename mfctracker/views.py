@@ -204,7 +204,6 @@ def branch(request, branch_id):
 
     template = loader.get_template('mfctracker/index.html')
     trunk = Branch.trunk()
-    branches = Branch.maintenance().order_by('-branch_revision', '-name')
     query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
 
     filters = request.session.get('filters', None)
@@ -262,7 +261,6 @@ def branch(request, branch_id):
 
     context = {}
     context['commits'] = commits
-    context['branches'] = branches
     context['current_branch'] = current_branch
     context['filters'] = filters
     # context['extended_filters'] = extended_filters
@@ -298,9 +296,7 @@ def mfcbasket(request, branch_id):
         share_url = request.build_absolute_uri(share_uri)
     else:
         share_url = ''
-    branches = Branch.maintenance().order_by('-branch_revision', '-name')
     context = {}
-    context['branches'] = branches
     context['commits'] = commits
     context['share_url'] = share_url
     context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
