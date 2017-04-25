@@ -10,6 +10,11 @@
       venv_path: "{{version_path}}/venv"
 
   tasks:
+    - name: install packages
+      pkgng: name={{item}} state=present
+      with_items:
+        - subversion
+        - openldap-sasl-client
 
     - name: Get SHA1 for the version name
       git:

@@ -35,9 +35,11 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os.path as op
 import os
-from django.utils.crypto import get_random_string
-
+import ldap
 import environ
+
+from django_auth_ldap.config import LDAPSearch
+from django.utils.crypto import get_random_string
 
 GLOBAL_ENV = '/usr/local/etc/mfctracker.env'
 LOCAL_ENV = 'env'
@@ -136,3 +138,19 @@ DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL', default='mfctracker@localhost
 DATABASES = {
     'default': env.db(default='pgsql://mfctracker@localhost/mfctracker'),
 }
+
+AUTH_LDAP_ENABLED = env.bool('AUTH_LDAP_ENABLED', default=False)
+if AUTH_LDAP_ENABLED:
+    AUTHENTICATION_BACKENDS = (
+        'django_auth_ldap.backend.LDAPBackend',
+        'django.contrib.auth.backends.ModelBackend',
+    )
+
+    ldap.set_option(ldap.OPT_REFERRALS, 0)
+    AUTH_LDAP_SERVER_URI = env.str('AUTH_LDAP_SERVER_URI') # no default, required
+    AUTH_LDAP_BIND_DN = env.str('AUTH_LDAP_BIND_DN', default='')
+    AUTH_LDAP_BIND_PASSWORD = env.str('AUTH_LDAP_BIND_PASSWORD', default='')
+    ldap_search_base = env.str('AUTH_LDAP_USER_SEARCH_BASE') # no default, required
+    ldap_search_filter = env.str('AUTH_LDAP_USER_SEARCH_FILTER', default='(uid=%(user)s)')
+    AUTH_LDAP_USER_SEARCH = LDAPSearch(ldap_search_base,
+        ldap.SCOPE_SUBTREE, ldap_search_filter)
