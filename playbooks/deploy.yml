@@ -18,8 +18,11 @@
         clone: no
       register: git_info
 
-    - name: set version path 
-      set_fact: version_path="{{version_base}}/{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}-{{version}}-{{ git_info.after[0:7] }}"
+    - name: set version dir
+      set_fact: version_dir="{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}-{{version}}-{{ git_info.after[0:7] }}"
+
+    - name: set version path
+      set_fact: version_path="{{version_base}}/{{ version_dir }}"
 
     - name: create version directory
       file: path="{{version_path}}"
@@ -78,7 +81,7 @@
 
     - name: create symlink to latest version
       file:
-        src: "{{version_path}}"
+        src: "{{version_dir}}"
         dest: "{{version_base}}/latest"
         state: link
         owner: mfctracker
