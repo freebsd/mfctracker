@@ -22,9 +22,15 @@
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
 
+from django.conf import settings
+
 from .models import Branch
 
 def branches(request):
     # return the value you want as a dictionnary. you may add multiple values in there.
     branches = Branch.maintenance().order_by('-branch_revision', '-name')
     return {'branches': branches}
+
+def ldap(request):
+    # return the value you want as a dictionnary. you may add multiple values in there.
+    return {'ldap_enabled': settings.AUTH_LDAP_ENABLED}

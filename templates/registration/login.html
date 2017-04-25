@@ -48,7 +48,9 @@
                             <input type="hidden" name="next" value="{{ next }}" />
                             </form>     
                         </div>                     
+                        {% if not ldap_enabled %}
                         <div id="login-forgot" class="text-right col-sm-12"><a href="{% url 'password_reset' %}">Forgot password?</a></div>
+                        {% endif %}
                     </div>  
         </div>
     </div>
