@@ -90,6 +90,14 @@
         src: files/mfctracker-manage
         dest: /usr/local/bin/mfctracker-manage
 
+    - name: copy sample mfctracker.env
+      become: true
+      copy:
+        src: files/mfctracker.env
+        dest: /usr/local/etc/mfctracker.env
+        owner: mfctracker
+        group: mfctracker
+
     - name: fix permissions for manage.py wrapper
       file: path=/usr/local/bin/mfctracker-manage
             mode=0755
