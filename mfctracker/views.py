@@ -469,3 +469,11 @@ def generate_new_token(request, branch_id):
     })
     share_url = request.build_absolute_uri(share_uri)
     return JsonResponse({'url': share_url})
+
+def get_version(request):
+    try:
+        from mfctracker import VERSION
+        version = VERSION
+    except ImportError:
+        version = 'development'
+    return JsonResponse({'version': version})

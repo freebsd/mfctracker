@@ -52,6 +52,12 @@
     - debug:
         msg: pip_result
 
+    - name: Add version info
+      lineinfile:
+        dest: "{{app_path}}/mfctracker/__init__.py"
+        regexp: "^VERSION.*"
+        line: "VERSION = '{{version}} {{ git_info.after[0:7] }}: {{ ansible_date_time.iso8601 }}'"
+
     - name: De-activate sync cron job
       cron:
         name: "mfctracker sync"
@@ -99,7 +105,6 @@
 
     - name: remove maintenance page
       file: path="{{version_base}}/html/maintenance.html" state=absent
-
 
     - name: Activate sync cron job
       cron:
