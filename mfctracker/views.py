@@ -61,37 +61,50 @@ def parse_extended_filters(trunk_path, filters):
             result = result | q
     return result
 
+def parse_single_filter(trunk_path, s):
+    committer = ''
+    path = ''
+    committer_q = None
+    path_q = None
+
+    m = re.match('^r?(\d+)(?:-r?(\d+))?$', s)
+    if m:
+        rev_from = m.group(1)
+        rev_to = m.group(2)
+        if rev_to is None:
+            q = Q(revision=rev_from)
+        else:
+            q = Q(revision__range=[rev_from, rev_to])
+        return q
+
+    if s.find('@') >= 0:
+        committer, path = s.split('@', 1)
+    else:
+        committer = s
+
+    if committer:
+        committer_q = Q(author=committer)
+
+    if path:
+        if not path.startswith('/'):
+            path = '/' + path
+        path = trunk_path + path
+        path_q = Q(changes__path__startswith=path)
+    if path_q and committer_q:
+        q = path_q & committer_q
+    elif path_q:
+        q = path_q
+    elif committer_q:
+        q = committer_q
+    return q
+
 def parse_filters(trunk_path, filters):
     result = None
     for s in filters.split():
         s = s.strip()
         if not s:
             continue
-        committer = ''
-        path = ''
-        committer_q = None
-        path_q = None
-
-        if s.find('@') >= 0:
-            committer, path = s.split('@', 1)
-        else:
-            committer = s
-
-        if committer:
-            committer_q = Q(author=committer)
-
-        if path:
-            if not path.startswith('/'):
-                path = '/' + path
-            path = trunk_path + path
-            path_q = Q(changes__path__startswith=path)
-        if path_q and committer_q:
-            q = path_q & committer_q
-        elif path_q:
-            q = path_q
-        elif committer_q:
-            q = committer_q
-
+        q = parse_single_filter(trunk_path, s)
         if result is None:
             result = q
         else:
