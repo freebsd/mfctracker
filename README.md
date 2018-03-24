@@ -8,6 +8,12 @@ This project is a web tool for tracking MFC (merges to stable branches) state of
 
 MFCTracker stack consists of Django, Python2, PostgreSQL. Production deployment is built using Nginx, uWSGI, and supervisord. The stack is generally OS-agnostic but automation scripts assume FreeBSD. Python2 was chosen because uWSGI on FreeBSD is built with Python2 support and I didn't want to generate custom packages for this project. 
 
+## Development VM
+
+Development VM can be created using vagrant tool. Run `vagrant up` to start VM, then `vagrant ssh` to log in. The project sources are located in `/app` directory which is mounted over NFS from host machine. To populate database run `sh scripts/setup.sh` in that directory followed by `python manage.py importcommits` command.
+
+To start web app run `python manage.py runserver 0:8000`, web UI should be available at http://localhost:8000
+
 ## Server Setup
 
 MFCTracker uses Ansible for initial setup and deployment automation. To setup a server install vanilla FreeBSD 11 and run following commands:
