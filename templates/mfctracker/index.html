@@ -9,12 +9,40 @@ $( document ).ready(function() {
         $('input[name="extended_filters"]').val($("#extended_filters_edit").val());
         $("#filtersform").submit();
     });
+    $('[data-toggle="popover"]').popover({
+        html : true,
+        container: 'body',
+        content: function() {
+          var content = $(this).attr("data-popover-content");
+          return $(content).children(".popover-body").html();
+        },
+        title: function() {
+          var title = $(this).attr("data-popover-content");
+          return $(title).children(".popover-heading").html();
+        }
+    })
 });
 </script>
 {% endblock %}
 
 {% block content %}
+<!-- Content for filter help popover -->
+<div class="hidden" id="a1">
+  <div class="popover-heading">
+    Filter syntax
+  </div>
 
+  <div class="popover-body">
+    <p>
+        <b>committer</b> filter by committer.<br/>
+        <b>@path/to/</b> filter by path in repository.<br/>
+        <b>committer@path/to/</b> filter by committer AND path in repository.<br/>
+        <b>NNN</b> or <b>rNNN</b> filter by revision.<br/>
+        <b>NNN-MMM</b> or <b>rNNN-rMMM</b> filter by revisions range (inclusive).<br/>
+        Multiple filters can be specified separated by spaces or comas in which case they'll be combined using OR operator.
+    </p>
+  </div>
+</div>
 
 <div class="container">
       <div class="row">
@@ -54,6 +82,7 @@ $( document ).ready(function() {
               <input type="hidden" name="extended_filters" value="">
             </div>
             <button type="button" class="btn btn-primary" id="setfilter">Filter</button>
+            <button type="button" class="btn btn-link" data-toggle="popover" data-placement="bottom" data-popover-content="#a1">[?]</button>
             <!-- <a class="btn btn-default" role="button" data-toggle="collapse" href="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">Advanced</a> -->
           </form>
         </div>

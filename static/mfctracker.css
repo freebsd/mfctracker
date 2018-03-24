@@ -71,3 +71,7 @@ td {
 pre>a {
     font-weight: bold;
 }
+
+.popover{
+    max-width: 100%; /* Max Width of the popover (depending on the container!) */
+}
