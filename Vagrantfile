@@ -4,7 +4,7 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ".", "/app", nfs: true
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.base_mac = "080027D14C66"
-  config.vm.network "private_network", type: "dhcp"
+  config.vm.network "private_network", ip: "192.168.50.4"
   config.vm.network "forwarded_port", guest: 8000, host: 8000,
       auto_correct: true
   config.vm.provider "virtualbox" do |vb|
@@ -17,7 +17,7 @@ Vagrant.configure(2) do |config|
   end
   config.ssh.shell = "sh"
   config.vm.provision "shell", inline: <<-SHELL
-    pkg install -y vim-lite py27-virtualenvwrapper postgresql96-server subversion p5-ack
+    pkg install -y vim-lite py27-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client
     sysrc postgresql_enable=YES
     service postgresql initdb
     service postgresql start
