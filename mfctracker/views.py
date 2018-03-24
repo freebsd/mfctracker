@@ -100,7 +100,8 @@ def parse_single_filter(trunk_path, s):
 
 def parse_filters(trunk_path, filters):
     result = None
-    for s in filters.split():
+    pattern = re.compile("[\s,]+")
+    for s in pattern.split(filters):
         s = s.strip()
         if not s:
             continue
