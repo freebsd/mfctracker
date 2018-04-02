@@ -344,6 +344,9 @@ def mfchelper(request, branch_id):
         str_revisions = commit_msg_revisions(revisions)
         commit_msg = 'MFC ' + str_revisions
         if len(revisions) == 1:
+            if not request.user.is_anonymous():
+                if request.user.username != commits[0].author:
+                    commit_msg += ' by {}'.format(commits[0].author)
             commit_msg += ':'
         commit_msg += '\n'
         mfc_re = re.compile('^MFC\s+after:.*\n?', re.IGNORECASE | re.MULTILINE)
