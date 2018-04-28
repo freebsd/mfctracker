@@ -17,15 +17,16 @@ Vagrant.configure(2) do |config|
   end
   config.ssh.shell = "sh"
   config.vm.provision "shell", inline: <<-SHELL
-    pkg install -y vim-lite py27-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client
+    pkg install -y vim-console py27-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client
     sysrc postgresql_enable=YES
     service postgresql initdb
     service postgresql start
 
     psql -U postgres -c 'create user vagrant'
     psql -U postgres -c 'alter user vagrant with superuser'
-    psql -U vagrant -c "drop database if exists mfctracker_dev;" template1
-    psql -U vagrant "create database mfctracker_dev;" template1
+    psql -U postgres -c 'create user mfctracker'
+    psql -U vagrant -c "drop database if exists mfctracker;" template1
+    psql -U vagrant -c "create database mfctracker;" template1
 
     su vagrant -c "virtualenv ~/.venv/mfctracker"
     echo "set mouse=" > ~vagrant/.vimrc
