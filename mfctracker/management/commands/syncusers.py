@@ -36,8 +36,9 @@ class Command(BaseCommand):
         for committer in committers:
             try:
                 user = User.objects.get(username=committer)
-                profile = UserProfile.objects.create(share_token=get_random_string(length=8), user=user)
-                profile.save()
+                if user.profile is None:
+                    profile = UserProfile.objects.create(share_token=get_random_string(length=8), user=user)
+                    profile.save()
             except User.DoesNotExist:
                 email = '{}@{}'.format(committer, settings.SVN_EMAIL_DOMAIN)
                 password = get_random_string(length=32)
