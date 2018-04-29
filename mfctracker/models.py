@@ -30,27 +30,6 @@ from django.utils.crypto import get_random_string
 
 import jsonfield
 
-class UserProfile(models.Model):
-    '''User-specific data like basket, share URL, etc...'''
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    share_token = models.CharField(max_length=30, blank=True)
-    mfc_basket = jsonfield.JSONField(default=[])
-
-    @classmethod
-    def create(cls, user):
-        obj = cls()
-        obj.user = user
-        obj.share_token = get_random_string(length=8)
-        return obj
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        profile = UserProfile.objects.create(share_token=get_random_string(length=8), user=instance)
-        profile.save()
-
-
 class Branch(models.Model):
     """Branch info"""
     name = models.CharField(max_length=30, unique=True)
@@ -120,6 +99,28 @@ class Change(models.Model):
     def create(cls, commit, operation, path):
         commit = cls(path=path, operation=operation, commit=commit)
         return commit
+
+
+class UserProfile(models.Model):
+    '''User-specific data like basket, share URL, etc...'''
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    share_token = models.CharField(max_length=30, blank=True)
+    mfc_basket = jsonfield.JSONField(default=[])
+    do_not_merge = models.ManyToManyField(Commit, blank=True)
+
+    @classmethod
+    def create(cls, user):
+        obj = cls()
+        obj.user = user
+        obj.share_token = get_random_string(length=8)
+        return obj
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        profile = UserProfile.objects.create(share_token=get_random_string(length=8), user=instance)
+        profile.save()
 
 
 class CommitNote(models.Model):

@@ -107,3 +107,23 @@ class TestComments():
         response = loggedin_client.delete(reverse('comment_commit', kwargs={'revision': commit.revision}))
         assert response.status_code == 204
         assert commit.notes.count() == 0
+
+    def test_add_do_not_merge(self, loggedin_client, valid_user, commit):
+        assert valid_user.profile.do_not_merge.count() == 0
+        response = loggedin_client.post(reverse('add_do_not_merge', kwargs={'revision': commit.revision}))
+        assert response.status_code == 204
+        assert valid_user.profile.do_not_merge.count() == 1
+
+    def test_del_do_not_merge(self, loggedin_client, valid_user, commit):
+        valid_user.profile.do_not_merge.add(commit)
+        valid_user.profile.save()
+        assert valid_user.profile.do_not_merge.count() == 1
+        response = loggedin_client.post(reverse('del_do_not_merge', kwargs={'revision': commit.revision}))
+        assert response.status_code == 204
+        assert valid_user.profile.do_not_merge.count() == 0
+
+    def test_del_do_not_merge_no_commit(self, loggedin_client, valid_user, commit):
+        assert valid_user.profile.do_not_merge.count() == 0
+        response = loggedin_client.post(reverse('del_do_not_merge', kwargs={'revision': commit.revision}))
+        assert response.status_code == 204
+        assert valid_user.profile.do_not_merge.count() == 0

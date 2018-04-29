@@ -219,6 +219,8 @@ def branch(request, branch_id):
     template = loader.get_template('mfctracker/index.html')
     trunk = Branch.trunk()
     query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
+    if not request.user.is_anonymous():
+       query = query.exclude(userprofile=request.user.profile)
 
     filters = request.session.get('filters', None)
     filter_waiting = request.session.get('filter_waiting', False)
@@ -494,3 +496,43 @@ def get_version(request):
     except ImportError:
         version = 'development'
     return JsonResponse({'version': version})
+
+
+@require_POST
+def add_do_not_merge(request, revision):
+    if request.user.is_anonymous():
+        return HttpResponseBadRequest()
+
+    if not revision:
+        return HttpResponseBadRequest()
+    try:
+        revision = int(revision)
+    except ValueError:
+        return HttpResponseBadRequest()
+
+    commit = get_object_or_404(Commit, revision=revision)
+    request.user.profile.do_not_merge.add(commit)
+    request.user.profile.save()
+
+    return HttpResponse(status=204)
+
+@require_POST
+def del_do_not_merge(request, revision):
+    if request.user.is_anonymous():
+        return HttpResponseBadRequest()
+
+    if not revision:
+        return HttpResponseBadRequest()
+    try:
+        revision = int(revision)
+    except ValueError:
+        return HttpResponseBadRequest()
+
+    commit = get_object_or_404(Commit, revision=revision)
+
+    commit = get_object_or_404(Commit, revision=revision)
+    request.user.profile.do_not_merge.remove(commit)
+    request.user.profile.save()
+
+    return HttpResponse(status=204)
+
