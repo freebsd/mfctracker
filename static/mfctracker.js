@@ -9,36 +9,36 @@ MFC.isSameSet = function( arr1, arr2 ) {
 }
 
 MFC.addRevision = function(revision) {
-	$.post( "/mfcbasket/add", { 'revision': revision }, function (data) {
-		MFC.updateBasket(data);
-	});
+    $.post( "/mfcbasket/add", { 'revision': revision }, function (data) {
+        MFC.updateBasket(data);
+    });
 }
 
 MFC.delRevision = function(revision) {
-	$.post( "/mfcbasket/remove", { 'revision': revision }, function (data) {
-		MFC.updateBasket(data);
-	});
+    $.post( "/mfcbasket/remove", { 'revision': revision }, function (data) {
+        MFC.updateBasket(data);
+    });
 }
 
 MFC.setupCommitActionButtons = function() {
     $("#commits tr").each(function(index, element) {
         var action = $(element).find("#action")[0];
         var icon = $(action).find(".glyphicon")[0];
-		var revision = $(element).attr('revision');
+        var revision = $(element).attr('revision');
         var inbasket = false;
-		if (MFC.basket.includes(revision)) {
+        if (MFC.basket.includes(revision)) {
             inbasket = true;
-			$(icon).addClass('inbasket');
-			$(action).off("click").click(function(e) {
-				MFC.delRevision(revision);
-			});
-		}
-		else {
-			$(icon).removeClass('inbasket');
-			$(action).off("click").click(function(e) {
-				MFC.addRevision(revision);
-			});
-		}
+            $(icon).addClass('inbasket');
+            $(action).off("click").click(function(e) {
+                MFC.delRevision(revision);
+            });
+        }
+        else {
+            $(icon).removeClass('inbasket');
+            $(action).off("click").click(function(e) {
+                MFC.addRevision(revision);
+            });
+        }
 
         // Just to make sure we can delete MFC-ed commits from basket
         if ($(element).hasClass('mfcdone') && !inbasket) {
@@ -51,7 +51,7 @@ MFC.setupCommitActionButtons = function() {
 };
 
 MFC.updateBasket = function(data) {
-	MFC.basket = data['basket'].map(function(v) { return v.toString(); });
+    MFC.basket = data['basket'].map(function(v) { return v.toString(); });
     if (MFC.origBasket) {
         if (MFC.isSameSet(MFC.origBasket, MFC.basket)) {
             $("#refreshbasket").addClass('disabled');
@@ -63,30 +63,30 @@ MFC.updateBasket = function(data) {
     else {
         MFC.origBasket = MFC.basket;
     }
-	$("#mfccount").html(MFC.basket.length);
-	MFC.setupCommitActionButtons();
+    $("#mfccount").html(MFC.basket.length);
+    MFC.setupCommitActionButtons();
 }
 
 MFC.fetchBasket = function() {
-	$.get( "/mfcbasket/json", function( data ) {
-		MFC.updateBasket(data);
-	});
+    $.get( "/mfcbasket/json", function( data ) {
+        MFC.updateBasket(data);
+    });
 };
 
 MFC.setupCommitCommentButtons = function() {
     ("#commits tr").each(function(index, element) {
         var action = $(element).find("#comment")[0];
-		var revision = $(element).attr('revision');
-		$(action).off("click").click(function(e) {
-			MFC.addRevision(revision);
-		});
+        var revision = $(element).attr('revision');
+        $(action).off("click").click(function(e) {
+            MFC.addRevision(revision);
+        });
     })
 };
 
 MFC.updateComment = function(revision, text, success) {
-	$.post( "/commit/" + revision + "/comment", { 'text': text }, function (data) {
-		success(data);
-	});
+    $.post( "/commit/" + revision + "/comment", { 'text': text }, function (data) {
+        success(data);
+    });
 }
 
 MFC.deleteComment = function(revision, success) {
