@@ -536,3 +536,26 @@ def del_do_not_merge(request, revision):
 
     return HttpResponse(status=204)
 
+
+def never_mfc(request):
+    if request.user.is_anonymous():
+        return HttpResponseBadRequest()
+
+    template = loader.get_template('mfctracker/nevermfc.html')
+
+    all_commits = request.user.profile.do_not_merge.order_by("-revision")
+    paginator = Paginator(all_commits, 15)
+
+    page = request.GET.get('page')
+    try:
+        commits = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        commits = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        commits = paginator.page(paginator.num_pages)
+
+    context = {}
+    context['commits'] = commits
+    return HttpResponse(template.render(context, request))

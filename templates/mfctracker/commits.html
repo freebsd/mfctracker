@@ -1,10 +1,11 @@
 {% load mfc_state %}
 {% load commit_note %}
+{% load do_not_merge %}
 
 
 <script>
 $( document ).ready(function() {
-	MFC.fetchBasket();
+    MFC.fetchBasket();
 
     $('#commentModal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget) // Button that triggered the modal
@@ -37,16 +38,50 @@ $( document ).ready(function() {
           });
       });
     })
+
+    $("button#confirm-ban").click(function() {
+        var revision =  $('span#ban-revision').text();
+        MFC.banCommit(revision, function (data) {
+            location.reload();
+        });
+        $('div#confirm-ban').modal('toggle');
+    });
+
+    $("button#confirm-unban").click(function() {
+        var revision =  $('span#unban-revision').text();
+        MFC.unbanCommit(revision, function (data) {
+            location.reload();
+        });
+        $('div#confirm-unban').modal('toggle');
+    });
+
+    $('.ban-button').each(function(index, element) {
+        var rev = $(element).data('revision');
+        $(element).off("click").click(function(e) {
+            if ($(element).hasClass('banned')) {
+                $('span#unban-revision').text(rev);
+                $('div#confirm-unban').modal({ backdrop: 'static', keyboard: false });
+            }
+            else {
+                $('span#ban-revision').text(rev);
+                $('div#confirm-ban').modal({ backdrop: 'static', keyboard: false });
+            }
+        })
+    });
 });
 </script>
 
         <table class="table table-hover" id="commits">
             {% for commit in commits %}
+                    {% if current_branch %}
                     <tr class="mfc{{ commit | mfc_state:current_branch }}" revision="{{ commit.revision }}">
+                    {% else %}
+                    <tr class="mfc" revision="{{ commit.revision }}">
+                    {% endif %}
                     <td class="col-sm-1">r{{ commit.revision }}</td>
                     <td class="col-sm-1">{{ commit.author }}</td>
                     <td class="col-sm-2">{{ commit.date }}</td>
-                     {% with note=commit|commit_note:request.user %}  
+                     {% with note=commit|commit_note:request.user banned=commit|do_not_merge:request.user%}
                      <td class="col-sm-7"><span class="summary" data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }} <i class="glyphicon glyphicon-comment {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment"></i></span>
 
                      <div class="collapse" id="more{{commit.revision}}">
@@ -59,6 +94,11 @@ $( document ).ready(function() {
                          <a role="button" class="btn btn-default viewvc pull-right" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
                          {% if user.is_authenticated %}
                          <button type="button" class="btn btn-default" data-toggle="modal" data-target="#commentModal" data-revision="{{commit.revision}}"><span class="glyphicon glyphicon-comment"></span> Comment</button>
+			 {% if banned %}
+                         <button type="button" class="btn btn-default ban-button banned" data-revision="{{commit.revision}}" aria-label="Move back to MFC list">Move to MFC list</button>
+                         {% else %}
+                         <button type="button" class="btn btn-default ban-button" data-revision="{{commit.revision}}" aria-label="Mark as never MFC"><span class="glyphicon glyphicon-ban-circle"></span> Never MFC</button>
+                         {% endif %}
                          {% endif %}
                     </div>
                     </td>

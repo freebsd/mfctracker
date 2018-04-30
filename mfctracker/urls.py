@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^(?P<branch_id>[0-9]+)/mfc$', views.mfcbasket, name='mfcbasket'),
     url(r'^(?P<branch_id>[0-9]+)/mfc/helper$', views.mfchelper, name='mfchelper'),
     url(r'^(?P<branch_id>[0-9]+)/mfc/(?P<username>[a-z0-9]+)/(?P<token>.+)$', views.mfcshare, name='mfcshare'),
+    url(r'^never$', views.never_mfc, name='never_mfc'),
     url(r'^mfcbasket/json$', views.basket, name='mfcbasket'),
     url(r'^mfcbasket/add$', views.addrevision, name='addrevision'),
     url(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),

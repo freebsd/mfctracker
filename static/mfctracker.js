@@ -112,3 +112,19 @@ MFC.generateShareToken = function(branch_id, success) {
         success: success
     });
 }
+
+MFC.banCommit = function(revision, success) {
+    $.ajax({
+        url: "/commit/" + revision + "/ban",
+        type: 'POST',
+        success: success
+    });
+}
+
+MFC.unbanCommit = function(revision, success) {
+    $.ajax({
+        url: "/commit/" + revision + "/unban",
+        type: 'POST',
+        success: success
+    });
+}
