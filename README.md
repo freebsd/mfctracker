@@ -14,6 +14,8 @@ Development VM can be created using vagrant tool. Run `vagrant up` to start VM, 
 
 To start web app run `python manage.py runserver 0:8000`, web UI should be available at http://localhost:8000
 
+To test logged-in user functionality set user password using `python manage.py changepassword username` command. `username` is any committer login (bare login, no @FreeBSD.org part)
+
 ## Server Setup
 
 MFCTracker uses Ansible for initial setup and deployment automation. To setup a server install vanilla FreeBSD 11 and run following commands:
