@@ -63,7 +63,9 @@ $( document ).ready(function() {
       </div>
       <div class="row">
           <h3>Commit message
-    <a role="button" target="#commit_msg" class="btn btn-default select" data-toggle="tooltip" data-placement="right" title="Click and then press Ctrl+C"> <i class="glyphicon glyphicon-copy"></i></a></h3>
+    <a role="button" target="#commit_msg" class="btn btn-default select" data-toggle="tooltip" data-placement="right" title="Click and then press Ctrl+C"> <i class="glyphicon glyphicon-copy"></i></a>
+	<a class="btn btn-link pull-right" href="{% url 'mfchelper' branch_id=current_branch.pk summarized=nextformat %}">show {% if nextformat %}summarized{% else %}full{% endif %} version</a>
+	</h3>
           <pre id="commit_msg">{{ commit_msg }}</pre>
       </div>
 {% endif %}

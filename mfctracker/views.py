@@ -176,6 +176,41 @@ def parse_x_mfc_with_alerts(commits, current_branch):
             alerts[commit.revision] = 'Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list)
     return alerts
 
+def mfc_commit_message(revisions, user, summarized=False):
+    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    commit_msg = None
+    if len(revisions) > 0:
+        str_revisions = commit_msg_revisions(revisions)
+        commit_msg = 'MFC ' + str_revisions
+        if len(revisions) == 1:
+            if not user.is_anonymous():
+                if user.username != commits[0].author:
+                    commit_msg += ' by {}'.format(commits[0].author)
+            commit_msg += ':'
+        commit_msg += '\n'
+        mfc_re = re.compile('^MFC\s+after:.*\n?', re.IGNORECASE | re.MULTILINE)
+        for commit in commits:
+            if summarized:
+                commit_msg = commit_msg + '\nr' + str(commit.revision) + ': '
+                msg = commit.msg.strip()
+                lines = msg.split('\n')
+                if len(lines) > 0:
+                    # Add summary string 
+                    commit_msg = commit_msg + lines[0]
+            else:
+                if len(revisions) > 1:
+                    commit_msg = commit_msg + '\nr' + str(commit.revision)
+                    if not user.is_anonymous():
+                        if user.username != commit.author:
+                            commit_msg += ' by {}'.format(commit.author)
+                    commit_msg += ':'
+                # Remove ^MFC.*after:.*$
+                msg = commit.msg
+                msg = mfc_re.sub('', msg)
+                commit_msg = commit_msg + '\n' + msg
+                commit_msg = commit_msg.strip() + '\n'
+    return commit_msg
+
 def _get_basket(request):
     if request.user.is_authenticated():
         basket = list(request.user.profile.mfc_basket)
@@ -315,6 +350,7 @@ def mfcbasket(request, branch_id):
     context = {}
     context['commits'] = commits
     context['share_url'] = share_url
+    context['summarized'] = request.session.get('summarized', False)
     context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
     context['current_branch'] = current_branch
     return HttpResponse(template.render(context, request))
@@ -334,37 +370,15 @@ def mfcshare(request, branch_id, username, token):
     context['current_branch'] = current_branch
     return HttpResponse(template.render(context, request))
 
-def mfchelper(request, branch_id):
+def mfchelper(request, branch_id, summarized = False):
+    request.session['summarized'] = summarized
     current_branch = get_object_or_404(Branch, pk=branch_id)
     trunk_branch = Branch.trunk()
     template = loader.get_template('mfctracker/mfc.html')
     revisions = _get_basket(request)
     revisions.sort()
     commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
-    commit_msg = None
-    if len(revisions) > 0:
-        str_revisions = commit_msg_revisions(revisions)
-        commit_msg = 'MFC ' + str_revisions
-        if len(revisions) == 1:
-            if not request.user.is_anonymous():
-                if request.user.username != commits[0].author:
-                    commit_msg += ' by {}'.format(commits[0].author)
-            commit_msg += ':'
-        commit_msg += '\n'
-        mfc_re = re.compile('^MFC\s+after:.*\n?', re.IGNORECASE | re.MULTILINE)
-        for commit in commits:
-            if len(revisions) > 1:
-                commit_msg = commit_msg + '\nr' + str(commit.revision)
-                if not request.user.is_anonymous():
-                    if request.user.username != commit.author:
-                        commit_msg += ' by {}'.format(commit.author)
-                commit_msg += ':'
-            # Remove ^MFC.*after:.*$
-            msg = commit.msg
-            msg = mfc_re.sub('', msg)
-            commit_msg = commit_msg + '\n' + msg
-            commit_msg = commit_msg.strip() + '\n'
-
+    commit_msg = mfc_commit_message(revisions, request.user, summarized)
     context = {}
     merge_revisions = svn_revisions_arg(revisions)
     commit_command = 'svn merge '
@@ -377,6 +391,7 @@ def mfchelper(request, branch_id):
     context['commit_command'] = commit_command
     context['current_branch'] = current_branch
     context['empty'] = len(revisions) == 0
+    context['nextformat'] = not summarized
     context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
 
     return HttpResponse(template.render(context, request))
