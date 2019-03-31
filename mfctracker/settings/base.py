@@ -38,7 +38,6 @@ import os
 import ldap
 import environ
 
-from django_auth_ldap.config import LDAPSearch
 from django.utils.crypto import get_random_string
 
 GLOBAL_ENV = '/usr/local/etc/mfctracker.env'
@@ -143,6 +142,7 @@ DATABASES = {
 
 AUTH_LDAP_ENABLED = env.bool('AUTH_LDAP_ENABLED', default=False)
 if AUTH_LDAP_ENABLED:
+    from django_auth_ldap.config import LDAPSearch
     AUTHENTICATION_BACKENDS = (
         'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend',
