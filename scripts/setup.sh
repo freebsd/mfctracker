@@ -4,4 +4,5 @@ python manage.py migrate
 python manage.py addbranch --trunk --name HEAD --path /head --branch-point 256281
 python manage.py addbranch --name STABLE-10 --path /stable/10
 python manage.py addbranch --name STABLE-11 --path /stable/11
+python manage.py addbranch --name STABLE-12 --path /stable/12
 
