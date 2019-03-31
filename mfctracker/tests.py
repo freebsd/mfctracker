@@ -62,7 +62,7 @@ class TestUtils(TestCase):
         self.assertEqual(requirements, set(xrange(1,6)))
 
     def test_mergeinfo_parser(self):
-        mergeinfo = parse_mergeinfo_prop('/repo:1-4,5')
+        mergeinfo = parse_mergeinfo_prop('/repo:1-3,4*,5')
         revisions = mergeinfo_ranges_to_set(mergeinfo['/repo'])
         self.assertEqual(revisions, set(xrange(1,6)))
 

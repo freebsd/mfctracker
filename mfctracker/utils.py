@@ -64,6 +64,8 @@ def parse_mergeinfo_prop(mergeinfo_str):
                 start, stop = r.split('-')
                 merged.append((int(start), int(stop),))
             else:
+                if r.endswith('*'):
+                    r = r[:-1]
                 merged.append(int(r))
         mergeinfo[branch_path] = merged
 
