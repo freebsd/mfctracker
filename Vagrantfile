@@ -1,6 +1,6 @@
 Vagrant.configure(2) do |config|
   config.vm.guest = :freebsd
-  config.vm.box = "freebsd/FreeBSD-11.1-RELEASE"
+  config.vm.box = "freebsd/FreeBSD-12.0-RELEASE"
   config.vm.synced_folder ".", "/app", nfs: true
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.base_mac = "080027D14C66"
