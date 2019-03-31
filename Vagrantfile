@@ -25,6 +25,7 @@ Vagrant.configure(2) do |config|
     psql -U postgres -c 'create user vagrant'
     psql -U postgres -c 'alter user vagrant with superuser'
     psql -U postgres -c 'create user mfctracker'
+    psql -U postgres -c 'alter user mfctracker with superuser'
     psql -U vagrant -c "drop database if exists mfctracker;" template1
     psql -U vagrant -c "create database mfctracker;" template1
 
