@@ -22,6 +22,7 @@
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
 import re
+
 def get_mfc_requirements(msg):
     """ Get set of revisions required to be merged with commit """
     requirements = set()
@@ -41,3 +42,41 @@ def get_mfc_requirements(msg):
                     pass # Just ignore garbage in field
 
     return requirements
+
+def parse_mergeinfo_prop(mergeinfo_str):
+    """Parse svn:mergeinfo property and return dictionary
+       where branch pathes are keys and values are compact
+       representations of merged commits: array of numbers
+       and tuples with <first, last> values
+    """
+
+    lines = mergeinfo_str.split('\n')
+    mergeinfo = {}
+
+    for  line in lines:
+        if not line:
+            next
+        branch_path, merged_part = line.split(':')
+        revisions = merged_part.split(',')
+        merged = []
+        for r in revisions:
+            if r.find('-') > 0:
+                start, stop = r.split('-')
+                merged.append((int(start), int(stop),))
+            else:
+                merged.append(int(r))
+        mergeinfo[branch_path] = merged
+
+    return mergeinfo
+
+
+def mergeinfo_ranges_to_set(mergeinfo_ranges):
+    """Convert compact ranges representation to python set object"""
+    result = set()
+    for r in mergeinfo_ranges:
+        if type(r) == int:
+            result.add(r)
+        else:
+            result |= set(range(r[0], r[1]+1))
+    return result
+

@@ -28,7 +28,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
 
-from .utils import get_mfc_requirements
+from .utils import get_mfc_requirements, parse_mergeinfo_prop, mergeinfo_ranges_to_set
 from .models import Commit, CommitNote
 
 @pytest.fixture()
@@ -60,6 +60,11 @@ class TestUtils(TestCase):
     def test_mfc_requirements(self):
         requirements = get_mfc_requirements('x-mfc-with: r1, r2,r3 , 4,5')
         self.assertEqual(requirements, set(xrange(1,6)))
+
+    def test_mergeinfo_parser(self):
+        mergeinfo = parse_mergeinfo_prop('/repo:1-4,5')
+        revisions = mergeinfo_ranges_to_set(mergeinfo['/repo'])
+        self.assertEqual(revisions, set(xrange(1,6)))
 
 @pytest.mark.django_db()
 class TestComments():

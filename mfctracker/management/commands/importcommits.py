@@ -34,43 +34,7 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 
 from mfctracker.models import Commit, Branch, Change
-from mfctracker.utils import get_mfc_requirements
-
-def mergeinfo_ranges_to_set(mergeinfo_ranges):
-    """Convert compact ranges representation to python set object"""
-    result = set()
-    for r in mergeinfo_ranges:
-        if type(r) == int:
-            result.add(r)
-        else:
-            result |= set(range(r[0], r[1]+1))
-    return result
-
-def parse_mergeinfo_prop(mergeinfo_str):
-    """Parse svn:mergeinfo property and return dictionary
-       where branch pathes are keys and values are compact
-       representations of merged commits: array of numbers
-       and tuples with <first, last> values
-    """
-        
-    lines = mergeinfo_str.split('\n')
-    mergeinfo = {}
-
-    for  line in lines:
-        if not line:
-            next
-        branch_path, merged_part = line.split(':')
-        revisions = merged_part.split(',')
-        merged = []
-        for r in revisions:
-            if r.find('-') > 0:
-                start, stop = r.split('-')
-                merged.append((int(start), int(stop),))
-            else:
-                merged.append(int(r))
-        mergeinfo[branch_path] = merged
-
-    return mergeinfo
+from mfctracker.utils import get_mfc_requirements, mergeinfo_ranges_to_set, parse_mergeinfo_prop
 
 class Command(BaseCommand):
     help = 'Import new commits from SVN repo'
