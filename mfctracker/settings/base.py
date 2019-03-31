@@ -35,7 +35,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os.path as op
 import os
-import ldap
 import environ
 
 from django.utils.crypto import get_random_string
@@ -142,6 +141,7 @@ DATABASES = {
 
 AUTH_LDAP_ENABLED = env.bool('AUTH_LDAP_ENABLED', default=False)
 if AUTH_LDAP_ENABLED:
+    import ldap
     from django_auth_ldap.config import LDAPSearch
     AUTHENTICATION_BACKENDS = (
         'django_auth_ldap.backend.LDAPBackend',
