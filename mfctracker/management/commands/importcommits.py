@@ -157,6 +157,6 @@ class Command(BaseCommand):
                     mfc_after = date.fromtimestamp(time.mktime(mfc_after_st))
                     return mfc_after
                 else:
-                    self.stdout.write(self.style.ERROR('Failed to parse MFC line: \'{}\''.format(line)))
+                    self.stdout.write(self.style.ERROR(u'Failed to parse MFC line: \'' + line + u'\''))
 
         return None
