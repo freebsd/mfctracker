@@ -28,7 +28,7 @@ def get_mfc_requirements(msg):
     requirements = set()
     lines = msg.split('\n')
     for line in lines:
-        if re.match('^\s*(x-)?mfc-with\s*:', line, flags=re.IGNORECASE):
+        if re.match('^\s*(x-)?mfc(-|\s+)with\s*:', line, flags=re.IGNORECASE):
             pos = line.find(':')
             line = line[pos+1:]
             revisions = re.split('[, ]+', line.strip())
