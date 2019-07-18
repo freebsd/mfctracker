@@ -57,8 +57,12 @@ def loggedin_client(request, valid_user):
 
 class TestUtils(TestCase):
 
-    def test_mfc_requirements(self):
+    def test_x_mfc_requirements(self):
         requirements = get_mfc_requirements('x-mfc-with: r1, r2,r3 , 4,5')
+        self.assertEqual(requirements, set(xrange(1,6)))
+
+    def test_mfc_requirements(self):
+        requirements = get_mfc_requirements('mfc-with: r1, r2,r3 , 4,5')
         self.assertEqual(requirements, set(xrange(1,6)))
 
     def test_mergeinfo_parser(self):
