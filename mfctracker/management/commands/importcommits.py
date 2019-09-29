@@ -96,7 +96,7 @@ class Command(BaseCommand):
                     if len(deps) > 0:
                         mfc_with[entry.revision] = deps
 
-                if not committers.has_key(entry.author):
+                if not entry.author in committers:
                     try:
                         user = User.objects.get(username=entry.author)
                     except User.DoesNotExist:
@@ -105,7 +105,7 @@ class Command(BaseCommand):
                         user = User.objects.create_user(entry.author, email, password)
                     committers[entry.author] = user
 
-            for revision, deps in mfc_with.iteritems():
+            for revision, deps in mfc_with.items():
                 commit = Commit.objects.get(revision=revision)
                 for dep in deps:
                     try:

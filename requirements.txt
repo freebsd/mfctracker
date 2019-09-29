@@ -1,4 +1,4 @@
-Django==1.11.20
+Django==1.11.24
 # django-auth-ldap==1.2.7
 django-bootstrap3==8.2.2
 django-environ==0.4.3

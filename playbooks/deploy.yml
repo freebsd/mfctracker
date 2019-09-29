@@ -3,7 +3,7 @@
   connection: local
   become: true
   vars:
-      ansible_python_interpreter: /usr/local/bin/python2.7
+      ansible_python_interpreter: /usr/local/bin/python3.6
       version_base: /usr/local/mfctracker
       version: master
       app_path: "{{version_path}}/app"
@@ -15,6 +15,7 @@
       with_items:
         - subversion
         - openldap-sasl-client
+        - ca_root_nss
 
     - name: Get SHA1 for the version name
       git:

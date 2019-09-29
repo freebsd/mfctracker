@@ -1,6 +1,7 @@
 Vagrant.configure(2) do |config|
   config.vm.guest = :freebsd
   config.vm.box = "freebsd/FreeBSD-12.0-RELEASE"
+  config.vm.boot_timeout = 600
   config.vm.synced_folder ".", "/app", nfs: true
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.base_mac = "080027D14C66"
@@ -17,7 +18,7 @@ Vagrant.configure(2) do |config|
   end
   config.ssh.shell = "sh"
   config.vm.provision "shell", inline: <<-SHELL
-    pkg install -y vim-console py27-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client
+    pkg install -y vim-console py36-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client ca_root_nss
     sysrc postgresql_enable=YES
     service postgresql initdb
     service postgresql start
