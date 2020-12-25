@@ -35,13 +35,22 @@ def get_mfc_requirements(msg):
             for rev in revisions:
                 if rev.startswith('r'):
                     rev = rev[1:]
-                try:
-                    r = int(rev)
-                    requirements.add(r)
-                except ValueError:
-                    pass # Just ignore garbage in field
+                requirements.add(rev)
 
     return requirements
+
+def get_cherry_picked_commits(msg):
+    """ Get set of commits that were cherrypicked for this commit"""
+    picks = set()
+    lines = msg.split('\n')
+    for line in lines:
+        m = re.match('.*\(cherry picked from commit ([0-9a-f]+)\).*', line, flags=re.IGNORECASE)
+        if m:
+            sha = m.group(1)
+            picks.add(sha)
+
+    return picks
+
 
 def parse_mergeinfo_prop(mergeinfo_str):
     """Parse svn:mergeinfo property and return dictionary
