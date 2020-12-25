@@ -41,9 +41,9 @@ Once it's finished you should have one directory name like `20170425-221356-mast
 
 Now we need to create branches and import all commits. To create branches run
 ```sh
-mfctracker-manage addbranch --trunk --name HEAD --path /head --branch-point 256281 # this is STABLE-10 branchpoint
-mfctracker-manage addbranch --name STABLE-10 --path /stable/10
-mfctracker-manage addbranch --name STABLE-11 --path /stable/11
+git clone --config remote.origin.fetch='+refs/notes/*:refs/notes/*' https://git.freebsd.org/src.git ~/src
+mfctracker-manage addbranch --trunk --name HEAD --path main --branch-point 3ade9440198973efee3e6ae9636e1b147c72140b
+mfctracker-manage addbranch --name STABLE-12 --path stable/12
 ```
 
 To import commits run (this command may take some time to finish)
