@@ -61,20 +61,27 @@ def parse_extended_filters(trunk_path, filters):
             result = result | q
     return result
 
-def parse_single_filter(trunk_path, s):
+def parse_single_filter(s):
     committer = ''
     path = ''
     committer_q = None
     path_q = None
 
-    m = re.match('^r?(\d+)(?:-r?(\d+))?$', s)
+    m = re.match('^r(\d+)(?:-r(\d+))?$', s)
+
     if m:
         rev_from = m.group(1)
         rev_to = m.group(2)
         if rev_to is None:
-            q = Q(revision=rev_from)
+            q = Q(svn_revision=rev_from)
         else:
-            q = Q(revision__range=[rev_from, rev_to])
+            q = Q(svn_revision__range=[rev_from, rev_to])
+        return q
+
+    m = re.match('^([0-9a-f]+)$', s)
+    if m:
+        sha = m.group(1)
+        q = Q(sha__startswith=sha)
         return q
 
     if s.find('@') >= 0:
@@ -86,9 +93,6 @@ def parse_single_filter(trunk_path, s):
         committer_q = Q(author=committer)
 
     if path:
-        if not path.startswith('/'):
-            path = '/' + path
-        path = trunk_path + path
         path_q = Q(changes__path__startswith=path)
     if path_q and committer_q:
         q = path_q & committer_q
@@ -98,14 +102,14 @@ def parse_single_filter(trunk_path, s):
         q = committer_q
     return q
 
-def parse_filters(trunk_path, filters):
+def parse_filters(filters):
     result = None
     pattern = re.compile("[\s,]+")
     for s in pattern.split(filters):
         s = s.strip()
         if not s:
             continue
-        q = parse_single_filter(trunk_path, s)
+        q = parse_single_filter(s)
         if result is None:
             result = q
         else:
@@ -116,17 +120,17 @@ def parse_filters(trunk_path, filters):
 def parse_x_mfc_with_alerts(commits, current_branch):
     alerts = {}
     # XXX: fixme
-#    revisions = [commit.revision for commit in commits]
-#    for commit in commits:
-#        # Remove ^MFC.*after:.*$
-#        msg = commit.msg
-#        mfc_with = set(commit.mfc_with.all().values_list('revision', flat=True))
-#        merged = set(current_branch.merges.filter(revision__in=mfc_with).values_list('revision', flat=True))
-#        missing = mfc_with - set(revisions) - merged
-#        if len(missing) > 0:
-#            missing_list = ', '.join([str(x) for x in missing])
-#            plural = 'commits are' if len(missing) > 1 else 'commit is'
-#            alerts[commit.revision] = 'Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list)
+    hashes = [commit.sha for commit in commits]
+    for commit in commits:
+        # Remove ^MFC.*after:.*$
+        msg = commit.msg
+        mfc_with = set(commit.mfc_with.all().values_list('sha', flat=True))
+        merged = set(current_branch.merges.filter(sha__in=mfc_with).values_list('sha', flat=True))
+        missing = mfc_with - set(hashes) - merged
+        if len(missing) > 0:
+            missing_list = ', '.join([x[:12] for x in missing])
+            plural = 'commits are' if len(missing) > 1 else 'commit is'
+            alerts[commit.sha] = 'Following {} marked as X-MFC-With by {}: {}'.format(plural, commit.sha, missing_list)
     return alerts
 
 def mfc_commit_message(hashes, user, summarized=False):
@@ -222,7 +226,7 @@ def branch(request, branch_id):
     #     q = q & parse_extended_filters(trunk.path, extended_filters)
 
     if filters:
-        parsed_q = parse_filters(trunk.path, filters)
+        parsed_q = parse_filters(filters)
         if parsed_q:
             query = query.filter(parsed_q)
     else:
@@ -246,7 +250,9 @@ def branch(request, branch_id):
     #     q = q & parse_extended_filters(trunk.path, extended_filters)
     query = query.filter(q)
 
-    all_commits = query.order_by('-date')
+    # Hack to properly simulate inner join and get rid of extra
+    # rows caused by the changes join
+    all_commits = query.order_by('-date').distinct('date')
     paginator = Paginator(all_commits, 15)
 
     page = request.GET.get('page')
@@ -334,6 +340,8 @@ def mfchelper(request, branch_id, summarized = False):
     template = loader.get_template('mfctracker/mfc.html')
     sha_hashes = _get_basket(request)
     commits = Commit.objects.filter(sha__in=sha_hashes).order_by("date")
+    # sort SHA hashes by date to apply them as expected
+    sha_hashes = [c.sha for c in commits]
     commit_msg = mfc_commit_message(sha_hashes, request.user, summarized)
     context = {}
     commit_command = ''
@@ -341,13 +349,13 @@ def mfchelper(request, branch_id, summarized = False):
         sha = commits[0].sha
         commit_command = f'git cherry-pick -x {sha} -m 1 --edit'
     else:
-        # XXX: sort hashes by date
-        all_hashes = "\\\n        ".join(sha_hashes)
-        commit_command = f'git checkout -b mfc-branch {current_branch.path}\n'
+        abbr = [s[:12] for s in sha_hashes]
+        all_hashes = " \\\n        ".join(abbr)
+        commit_command = f'git checkout -b mfc-branch {current_branch.path}\n\n'
         commit_command += f'for sha in {all_hashes}; do\n'
         commit_command += '    git cherry-pick -x $sha\n'
-        commit_command += 'done\n'
-        commit_command += f'git rebase -i {current_branch.path}\n'
+        commit_command += 'done\n\n'
+        commit_command += f'git rebase -i {current_branch.path}\n\n'
         commit_command += '# mark each of the commits after the first as \'squash\'\n'
         commit_command += '# edit the commit message to be sane\n'
         commit_command += f'git push freebsd HEAD:{current_branch.path}\n'
@@ -424,14 +432,9 @@ def comment_commit(request, sha):
 
 
 @require_http_methods(["POST"])
-def fix_commit_dependencies(request, revision):
-    try:
-        revision = int(revision)
-    except ValueError:
-        return HttpResponseBadRequest()
-
-    commit = get_object_or_404(Commit, revision=revision)
-    mfc_with = set(commit.mfc_with.all().values_list('revision', flat=True))
+def fix_commit_dependencies(request, sha):
+    commit = get_object_or_404(Commit, sha=sha)
+    mfc_with = set(commit.mfc_with.all().values_list('sha', flat=True))
     current_basket = _get_basket(request)
 
     for dependency in mfc_with:
