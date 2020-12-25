@@ -21,12 +21,14 @@
 #  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
-import svn.remote
+from git import Repo
+from git.exc import GitCommandError
 import json
 import parsedatetime
 import time
 import re
-from datetime import date
+from datetime import date, datetime, timezone
+from collections import deque
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -34,18 +36,18 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 
 from mfctracker.models import Commit, Branch, Change
-from mfctracker.utils import get_mfc_requirements, mergeinfo_ranges_to_set, parse_mergeinfo_prop
+from mfctracker.utils import get_mfc_requirements, get_cherry_picked_commits
 
 class Command(BaseCommand):
     help = 'Import new commits from SVN repo'
 
     def add_arguments(self, parser):
-        parser.add_argument('-r', '--start-revision', type=int,
-            default=-1, help='revision to start import from')
+        parser.add_argument('-r', '--start-revision', type=str,
+            default='', help='revision to start import from')
         parser.add_argument('-b', '--branch', type=str,
             default=None, help='name of the branch')
         parser.add_argument('-l', '--limit', type=int,
-            default=None, help='maximum number of commits passsed to svn log command')
+            default=None, help='maximum number of commits passsed to git log command')
 
     def handle(self, *args, **options):
         start_revision = options['start_revision']
@@ -58,43 +60,62 @@ class Command(BaseCommand):
         else:
             branches = [ Branch.objects.get(name=branch) ]
 
-        r = svn.remote.RemoteClient(settings.SVN_BASE_URL)
+        repo = Repo(settings.GIT_REPO)
 
         for b in branches:
-            branch_path = b.path
-            branch_path = branch_path
-            if start_revision < 0:
-                revision = b.last_revision
+            branch_ref = 'remotes/origin/' + b.path
+            if not start_revision:
+                revision = b.last_commit
             else:
                 revision = start_revision
-            # Do not go behind first commit to the branch
-            revision = max(revision, b.branch_revision)
-            self.stdout.write('Importing commits for branch %s, starting with r%d (last revision r%d)' % (b.name, revision, b.last_revision))
-            log_entries = reversed(list(r.log_default(rel_filepath=b.path, revision_from=revision, limit=limit, changelist=True)))
+            self.stdout.write('Importing commits for branch %s, starting with %s (last revision %s)' % (b.name, revision, b.last_commit))
+            log_entries = repo.iter_commits(branch_ref)
             branch_commits = 0
-            last_revision = 0
+            last_commit = ''
             mfc_with = {}
+            mfced = set()
+            # track back to the last commit
+
+            new_entries = deque([], limit)
             for entry in log_entries:
-                # Do not include last_revision in subsequent imports
-                if entry.revision <= b.last_revision:
-                    continue
-                commit = Commit.create(entry.revision, entry.author, entry.date, entry.msg)
+                if entry.hexsha == b.last_commit:
+                    break
+                new_entries.appendleft(entry)
+
+            for entry in new_entries:
+                committed_date = datetime.fromtimestamp(entry.committed_date, tz=timezone.utc)
+                revision = None
+                try:
+                    notes = repo.git.notes('show', entry.hexsha)
+                    m = re.match('.*revision=(\d+).*', notes)
+                    if m:
+                        revision = m.group(1)
+                except GitCommandError:
+                    pass
+                author = entry.committer.email
+                if author.find('@') >= 0:
+                    author = author.split("@")[0]
+
+                commit = Commit.create(entry.hexsha, author, committed_date, entry.message)
                 commit.branch = b
-                commit.mfc_after = self.parse_mfc_entry(entry.msg, entry.date)
+                commit.svn_revision = revision
+                commit.mfc_after = self.parse_mfc_entry(entry.message, committed_date);
                 commit.save()
-                for c in entry.changelist:
-                    op = c[0]
-                    path = c[1]
-                    if not path.startswith(branch_path):
-                        continue
-                    change = Change.create(commit, op, path)
-                    change.save()
+
+                changes = []
+                for path in entry.stats.files:
+                    change = Change(path=path, commit=commit)
+                    changes.append(change)
+                Change.objects.bulk_create(changes)
                 branch_commits += 1
-                last_revision = max(last_revision, entry.revision)
+                last_commit = entry.hexsha
                 if b.is_trunk:
-                    deps = get_mfc_requirements(entry.msg)
+                    deps = get_mfc_requirements(entry.message)
                     if len(deps) > 0:
-                        mfc_with[entry.revision] = deps
+                        mfc_with[entry.hexsha] = deps
+                else:
+                    picked = get_cherry_picked_commits(entry.message)
+                    mfced = mfced.union(picked)
 
                 if not entry.author in committers:
                     try:
@@ -105,47 +126,43 @@ class Command(BaseCommand):
                         user = User.objects.create_user(entry.author, email, password)
                     committers[entry.author] = user
 
-            for revision, deps in mfc_with.items():
-                commit = Commit.objects.get(revision=revision)
+            for sha in mfced:
+                try:
+                    commit = Commit.objects.get(sha=sha)
+                    commit.merged_to.add(b)
+                    commit.save()
+                except Commit.DoesNotExist:
+                    self.stdout.write(self.style.ERROR('{} merked as merged but does not exist'.format(sha)))
+
+            for sha, deps in mfc_with.items():
+                commit = Commit.objects.get(sha=sha)
                 for dep in deps:
                     try:
-                        dep_commit = Commit.objects.get(revision=dep)
+                        rev = int(dep)
+                        dep_commit = Commit.objects.get(svn_revision=rev)
                         commit.mfc_with.add(dep_commit)
+                        continue
                     except Commit.DoesNotExist:
-                        self.stdout.write(self.style.ERROR('r{} has r{} in X-MFC-With list but it does not exist'.format(entry.revision, revision)))
+                        self.stdout.write(self.style.ERROR('{} has r{} in X-MFC-With list but it does not exist'.format(sha, dep)))
+                        continue
+                    except ValueError:
+                        pass
+
+                    dep_commits = Commit.objects.filter(sha__startswith=dep)
+                    if dep_commits.count() == 0:
+                        self.stdout.write(self.style.ERROR('{} has {} in X-MFC-With list but it does not exist'.format(sha, dep)))
+                    elif dep_commits.count() > 1:
+                        self.stdout.write(self.style.ERROR('{} has {} in X-MFC-With list but it is ambiguous'.format(sha, dep)))
+                    else:
+                        commit.mfc_with.add(dep_commits[0])
 
             if branch_commits:
-                self.stdout.write('Imported {} commits, last revision is {}'.format(branch_commits, last_revision))
-                b.last_revision = last_revision
+                self.stdout.write('Imported {} commits, last revision is {}'.format(branch_commits, last_commit))
+                b.last_commit = last_commit
             else:
                 self.stdout.write('No commits to import')
 
-            props = r.properties(b.path)
-            mergeinfo_prop = props.get('svn:mergeinfo', None)
-            mergeinfo = {}
-            if mergeinfo_prop is not None:
-                mergeinfo = parse_mergeinfo_prop(props['svn:mergeinfo'])
-            b.mergeinfo = mergeinfo
             b.save()
-
-        # Sync mergeinfo and commit records
-        known_pathes = list(Branch.objects.values_list('path', flat=True)) 
-        for b in branches:
-            old_merged_revisions = list(b.merges.values_list('revision', flat=True))
-            new_merged_revisions = set()
-            for path in known_pathes:
-                if path == b.path:
-                    continue
-                if not path in b.mergeinfo.keys():
-                    continue
-                new_merged_revisions |= mergeinfo_ranges_to_set(b.mergeinfo[path])
-            update_revisions = new_merged_revisions.difference(old_merged_revisions)
-            new_merged_commits = 0
-            for commit in Commit.objects.filter(revision__in=update_revisions):
-                commit.merged_to.add(b)
-                commit.save()
-                new_merged_commits += 1
-            self.stdout.write('{} commits marked as merged to {}'.format(new_merged_commits, b.name))
 
     def parse_mfc_entry(self, msg, commit_date):
         lines = msg.split('\n')
