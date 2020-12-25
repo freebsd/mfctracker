@@ -113,93 +113,41 @@ def parse_filters(trunk_path, filters):
 
     return result
 
-def svn_revisions_arg(revisions):
-    args = []
-
-    if len(revisions) == 0:
-        return args
-
-    range_start = revisions[0]
-    range_end = revisions[0]
-
-    i = 1
-    while i < len(revisions):
-        if revisions[i] - 1 == range_end:
-            range_end = revisions[i]
-        else:
-            args.append(svn_range_to_arg(range_start, range_end))
-            range_start = range_end = revisions[i]
-        i += 1
-
-    args.append(svn_range_to_arg(range_start, range_end))
-    return args
-
-def commit_msg_revisions(revisions):
-    result = []
-
-    if len(revisions) == 0:
-        return result
-
-    range_start = revisions[0]
-    range_end = revisions[0]
-
-    i = 1
-    while i < len(revisions):
-        if revisions[i] - 1 == range_end:
-            range_end = revisions[i]
-        else:
-            if range_start == range_end:
-                result.append('r{}'.format(range_start))
-            else:
-                result.append('r{}-r{}'.format(range_start, range_end))
-            range_start = range_end = revisions[i]
-        i += 1
-
-    if range_start == range_end:
-        result.append('r{}'.format(range_start))
-    else:
-        result.append('r{}-r{}'.format(range_start, range_end))
-    return ', '.join(result)
-
 def parse_x_mfc_with_alerts(commits, current_branch):
     alerts = {}
-    revisions = [commit.revision for commit in commits]
-    for commit in commits:
-        # Remove ^MFC.*after:.*$
-        msg = commit.msg
-        mfc_with = set(commit.mfc_with.all().values_list('revision', flat=True))
-        merged = set(current_branch.merges.filter(revision__in=mfc_with).values_list('revision', flat=True))
-        missing = mfc_with - set(revisions) - merged
-        if len(missing) > 0:
-            missing_list = ', '.join([str(x) for x in missing])
-            plural = 'commits are' if len(missing) > 1 else 'commit is'
-            alerts[commit.revision] = 'Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list)
+    # XXX: fixme
+#    revisions = [commit.revision for commit in commits]
+#    for commit in commits:
+#        # Remove ^MFC.*after:.*$
+#        msg = commit.msg
+#        mfc_with = set(commit.mfc_with.all().values_list('revision', flat=True))
+#        merged = set(current_branch.merges.filter(revision__in=mfc_with).values_list('revision', flat=True))
+#        missing = mfc_with - set(revisions) - merged
+#        if len(missing) > 0:
+#            missing_list = ', '.join([str(x) for x in missing])
+#            plural = 'commits are' if len(missing) > 1 else 'commit is'
+#            alerts[commit.revision] = 'Following {} marked as X-MFC-With by revision {}: {}'.format(plural, commit.revision, missing_list)
     return alerts
 
-def mfc_commit_message(revisions, user, summarized=False):
-    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+def mfc_commit_message(hashes, user, summarized=False):
+    commits = Commit.objects.filter(sha__in=hashes).order_by("date")
     commit_msg = None
-    if len(revisions) > 0:
-        str_revisions = commit_msg_revisions(revisions)
-        commit_msg = 'MFC ' + str_revisions
-        if len(revisions) == 1:
-            if not user.is_anonymous():
-                if user.username != commits[0].author:
-                    commit_msg += ' by {}'.format(commits[0].author)
-            commit_msg += ':'
-        commit_msg += '\n'
+    if len(hashes) > 0:
+        commit_msg = ''
         mfc_re = re.compile('^MFC\s+after:.*\n?', re.IGNORECASE | re.MULTILINE)
         for commit in commits:
             if summarized:
-                commit_msg = commit_msg + '\nr' + str(commit.revision) + ': '
+                commit_msg = commit_msg + '\n' + commit.sha_abbr + ': '
                 msg = commit.msg.strip()
                 lines = msg.split('\n')
                 if len(lines) > 0:
                     # Add summary string 
                     commit_msg = commit_msg + lines[0]
             else:
-                if len(revisions) > 1:
-                    commit_msg = commit_msg + '\nr' + str(commit.revision)
+                if len(hashes) > 1:
+                    if commit_msg:
+                        commit_msg += '\n'
+                    commit_msg = commit_msg + '\n' + str(commit.sha_abbr)
                     if not user.is_anonymous():
                         if user.username != commit.author:
                             commit_msg += ' by {}'.format(commit.author)
@@ -209,6 +157,13 @@ def mfc_commit_message(revisions, user, summarized=False):
                 msg = mfc_re.sub('', msg)
                 commit_msg = commit_msg + '\n' + msg
                 commit_msg = commit_msg.strip() + '\n'
+
+    commit_msg += '\n'
+    if summarized:
+        commit_msg += '\n'
+    for commit in commits:
+        commit_msg += f'(cherry picked from commit {commit.sha})\n'
+
     return commit_msg
 
 def _get_basket(request):
@@ -228,7 +183,7 @@ def _set_basket(request, basket):
 def index(request):
     default_pk = request.session.get('branch', None)
     if default_pk is None:
-        branches = Branch.maintenance().order_by('-branch_revision', '-name')
+        branches = Branch.maintenance().order_by('-branch_date', '-name')
         default_pk = branches[0].pk
     return redirect('branch', branch_id=default_pk)
 
@@ -253,7 +208,7 @@ def branch(request, branch_id):
 
     template = loader.get_template('mfctracker/index.html')
     trunk = Branch.trunk()
-    query = trunk.commits.filter(revision__gt=current_branch.branch_revision)
+    query = trunk.commits.filter(date__gt=current_branch.branch_date)
     if not request.user.is_anonymous():
        query = query.exclude(userprofile=request.user.profile)
 
@@ -291,20 +246,23 @@ def branch(request, branch_id):
     #     q = q & parse_extended_filters(trunk.path, extended_filters)
     query = query.filter(q)
 
-    all_commits = query.order_by('-revision').distinct('revision')
+    all_commits = query.order_by('-date')
     paginator = Paginator(all_commits, 15)
 
     page = request.GET.get('page')
     if page is None:
         page = request.session.get('page', None)
+    if page is None:
+        page = 1
 
     try:
-        commits = paginator.page(page)
+        page = int(page)
+    except ValueError:
+        page = 1
+
+    try:
+        commits = paginator.page(int(page))
         request.session['page'] = page
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        commits = paginator.page(1)
-        request.session['page'] = 1
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         commits = paginator.page(paginator.num_pages)
@@ -335,9 +293,9 @@ def mfcbasket(request, branch_id):
     current_branch = get_object_or_404(Branch, pk=branch_id)
     trunk_branch = Branch.trunk()
     template = loader.get_template('mfctracker/mfcbasket.html')
-    revisions = _get_basket(request)
-    revisions.sort()
-    commits = Commit.objects.filter(revision__in=revisions).order_by("-revision")
+    sha_hashes = _get_basket(request)
+    print (sha_hashes)
+    commits = Commit.objects.filter(sha__in=sha_hashes).order_by("-date")
     if request.user.is_authenticated:
         share_uri = reverse('mfcshare', kwargs={
             'username': request.user.username,
@@ -361,9 +319,8 @@ def mfcshare(request, branch_id, username, token):
     trunk_branch = Branch.trunk()
     user = get_object_or_404(User, username=username, profile__share_token=token)
     template = loader.get_template('mfctracker/mfcshare.html')
-    revisions = user.profile.mfc_basket
-    revisions.sort()
-    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
+    sha_hashes = user.profile.mfc_basket
+    commits = Commit.objects.filter(sha__in=sha_hashes).order_by("-date")
     context = {}
     context['commits'] = commits
     context['username'] = username
@@ -375,22 +332,30 @@ def mfchelper(request, branch_id, summarized = False):
     current_branch = get_object_or_404(Branch, pk=branch_id)
     trunk_branch = Branch.trunk()
     template = loader.get_template('mfctracker/mfc.html')
-    revisions = _get_basket(request)
-    revisions.sort()
-    commits = Commit.objects.filter(revision__in=revisions).order_by("revision")
-    commit_msg = mfc_commit_message(revisions, request.user, summarized)
+    sha_hashes = _get_basket(request)
+    commits = Commit.objects.filter(sha__in=sha_hashes).order_by("date")
+    commit_msg = mfc_commit_message(sha_hashes, request.user, summarized)
     context = {}
-    merge_revisions = svn_revisions_arg(revisions)
-    commit_command = 'svn merge '
-    commit_command += ' '.join(merge_revisions)
-    commit_command += ' ^' + trunk_branch.path + '/'
-    path = current_branch.path.strip('/')
-    commit_command += ' ' + path
+    commit_command = ''
+    if len(commits) == 1:
+        sha = commits[0].sha
+        commit_command = f'git cherry-pick -x {sha} -m 1 --edit'
+    else:
+        # XXX: sort hashes by date
+        all_hashes = "\\\n        ".join(sha_hashes)
+        commit_command = f'git checkout -b mfc-branch {current_branch.path}\n'
+        commit_command += f'for sha in {all_hashes}; do\n'
+        commit_command += '    git cherry-pick -x $sha\n'
+        commit_command += 'done\n'
+        commit_command += f'git rebase -i {current_branch.path}\n'
+        commit_command += '# mark each of the commits after the first as \'squash\'\n'
+        commit_command += '# edit the commit message to be sane\n'
+        commit_command += f'git push freebsd HEAD:{current_branch.path}\n'
 
     context['commit_msg'] = commit_msg
     context['commit_command'] = commit_command
     context['current_branch'] = current_branch
-    context['empty'] = len(revisions) == 0
+    context['empty'] = len(commits) == 0
     context['nextformat'] = not summarized
     context['alerts'] = parse_x_mfc_with_alerts(commits, current_branch)
 
@@ -404,16 +369,12 @@ def basket(request):
 @require_POST
 def addrevision(request):
     current_basket = _get_basket(request)
-    revision = request.POST.get('revision', None)
-    if not revision:
-        return HttpResponseBadRequest()
-    try:
-        revision = int(revision)
-    except ValueError:
+    sha = request.POST.get('sha', None)
+    if not sha:
         return HttpResponseBadRequest()
 
-    if not revision in current_basket:
-        current_basket.append(revision)
+    if not sha in current_basket:
+        current_basket.append(sha)
     _set_basket(request, current_basket)
 
     return JsonResponse({'basket': current_basket})
@@ -421,16 +382,12 @@ def addrevision(request):
 @require_POST
 def delrevision(request):
     current_basket = _get_basket(request)
-    revision = request.POST.get('revision', None)
-    if not revision:
-        return HttpResponseBadRequest()
-    try:
-        revision = int(revision)
-    except ValueError:
+    sha = request.POST.get('sha', None)
+    if not sha:
         return HttpResponseBadRequest()
 
-    if revision in current_basket:
-        current_basket.remove(revision)
+    if sha in current_basket:
+        current_basket.remove(sha)
     _set_basket(request, current_basket)
 
     return JsonResponse({'basket': current_basket})
@@ -443,18 +400,13 @@ def clearbasket(request):
     return JsonResponse({'basket': current_basket})
 
 @require_http_methods(["POST", "DELETE"])
-def comment_commit(request, revision):
+def comment_commit(request, sha):
     # can't use login_required because it's API call
     # @login_required redirects to login page with 302 result code
     if not request.user.is_authenticated():
         raise PermissionDenied
 
-    try:
-        revision = int(revision)
-    except ValueError:
-        return HttpResponseBadRequest()
-
-    commit = get_object_or_404(Commit, revision=revision)
+    commit = get_object_or_404(Commit, sha=sha)
     if request.method == 'DELETE':
         # Delete comment if text wasn't passed
         try:
@@ -514,38 +466,28 @@ def get_version(request):
 
 
 @require_POST
-def add_do_not_merge(request, revision):
+def add_do_not_merge(request, sha):
     if request.user.is_anonymous():
         return HttpResponseBadRequest()
 
-    if not revision:
-        return HttpResponseBadRequest()
-    try:
-        revision = int(revision)
-    except ValueError:
+    if not sha:
         return HttpResponseBadRequest()
 
-    commit = get_object_or_404(Commit, revision=revision)
+    commit = get_object_or_404(Commit, sha=sha)
     request.user.profile.do_not_merge.add(commit)
     request.user.profile.save()
 
     return HttpResponse(status=204)
 
 @require_POST
-def del_do_not_merge(request, revision):
+def del_do_not_merge(request, sha):
     if request.user.is_anonymous():
         return HttpResponseBadRequest()
 
-    if not revision:
-        return HttpResponseBadRequest()
-    try:
-        revision = int(revision)
-    except ValueError:
+    if not sha:
         return HttpResponseBadRequest()
 
-    commit = get_object_or_404(Commit, revision=revision)
-
-    commit = get_object_or_404(Commit, revision=revision)
+    commit = get_object_or_404(Commit, sha=sha)
     request.user.profile.do_not_merge.remove(commit)
     request.user.profile.save()
 
@@ -558,7 +500,7 @@ def never_mfc(request):
 
     template = loader.get_template('mfctracker/nevermfc.html')
 
-    all_commits = request.user.profile.do_not_merge.order_by("-revision")
+    all_commits = request.user.profile.do_not_merge.order_by("-date")
     paginator = Paginator(all_commits, 15)
 
     page = request.GET.get('page')

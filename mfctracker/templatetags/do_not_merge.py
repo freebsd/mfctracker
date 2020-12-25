@@ -35,6 +35,6 @@ def do_not_merge(commit, user):
         return False
 
     try:
-        return user.profile.do_not_merge.filter(revision=commit.revision).exists()
+        return user.profile.do_not_merge.filter(sha=commit.sha).exists()
     except ObjectDoesNotExist:
         return False
