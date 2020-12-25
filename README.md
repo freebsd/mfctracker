@@ -21,7 +21,7 @@ To test logged-in user functionality set user password using `python manage.py c
 MFCTracker uses Ansible for initial setup and deployment automation. To setup a server install vanilla FreeBSD 11 and run following commands:
 
 ```sh
-sudo pkg install git py36-ansible
+sudo pkg install git-lite py37-ansible
 git clone https://github.com/gonzoua/mfctracker.git
 ansible-playbook -i localhost, mfctracker/playbooks/setup.yml
 ```

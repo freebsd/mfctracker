@@ -2,6 +2,8 @@ Vagrant.configure(2) do |config|
   config.vm.guest = :freebsd
   config.vm.box = "freebsd/FreeBSD-12.2-RELEASE"
   config.vm.boot_timeout = 600
+  config.vm.synced_folder ".", "/app", nfs: true
+  config.vm.synced_folder ".", "/vagrant", disabled: true
   # requires vagrant-disksize plugin
   config.disksize.size = '20GB'
   config.vm.base_mac = "080027D14C66"

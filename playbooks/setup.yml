@@ -15,9 +15,9 @@
         - nginx
         - uwsgi
         - git
-        - py36-virtualenv
-        - py36-supervisor
-        - py36-psycopg2
+        - py37-virtualenv
+        - py37-supervisor
+        - py37-psycopg2
 
     - name: enable services
       service:
