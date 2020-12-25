@@ -28,7 +28,7 @@ from .models import Branch
 
 def branches(request):
     # return the value you want as a dictionnary. you may add multiple values in there.
-    branches = Branch.maintenance().order_by('-branch_revision', '-name')
+    branches = Branch.maintenance().order_by('-branch_date', '-name')
     return {'branches': branches}
 
 def ldap(request):
