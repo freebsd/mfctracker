@@ -14,7 +14,7 @@
         - postgresql95-server
         - nginx
         - uwsgi
-        - git
+        - git-lite
         - py37-virtualenv
         - py37-supervisor
         - py37-psycopg2
