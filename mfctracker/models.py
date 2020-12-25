@@ -58,6 +58,7 @@ class Commit(models.Model):
     """Single commit info"""
     sha = models.CharField(primary_key=True, max_length=64)
     svn_revision = models.IntegerField(null=True)
+    commit_counter = models.IntegerField(null=True)
     author = models.CharField(max_length=30)
     date = models.DateTimeField()
     mfc_after = models.DateField(blank=True, null=True)

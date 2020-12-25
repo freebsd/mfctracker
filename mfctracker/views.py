@@ -252,7 +252,7 @@ def branch(request, branch_id):
 
     # Hack to properly simulate inner join and get rid of extra
     # rows caused by the changes join
-    all_commits = query.order_by('-date').distinct('date')
+    all_commits = query.order_by('-commit_counter').distinct('commit_counter')
     paginator = Paginator(all_commits, 15)
 
     page = request.GET.get('page')

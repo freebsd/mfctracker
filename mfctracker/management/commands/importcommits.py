@@ -33,6 +33,7 @@ from collections import deque
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db.models import Max
 from django.utils.crypto import get_random_string
 
 from mfctracker.models import Commit, Branch, Change
@@ -63,6 +64,12 @@ class Command(BaseCommand):
         repo = Repo(settings.GIT_REPO)
 
         for b in branches:
+            commits = b.commits.all()
+            counter = commits.aggregate(Max('commit_counter'))['commit_counter__max']
+            if counter is None:
+                counter = 1
+            else:
+                counter = counter + 1
             branch_ref = 'remotes/origin/' + b.path
             if not start_revision:
                 revision = b.last_commit
@@ -100,13 +107,17 @@ class Command(BaseCommand):
                 commit.branch = b
                 commit.svn_revision = revision
                 commit.mfc_after = self.parse_mfc_entry(entry.message, committed_date);
+                commit.commit_counter = counter
+                counter += 1
                 commit.save()
 
-                changes = []
-                for path in entry.stats.files:
-                    change = Change(path=path, commit=commit)
-                    changes.append(change)
-                Change.objects.bulk_create(changes)
+                if b.is_trunk:
+                    changes = []
+                    for path in entry.stats.files:
+                        change = Change(path=path, commit=commit)
+                        changes.append(change)
+                    Change.objects.bulk_create(changes)
+
                 branch_commits += 1
                 last_commit = entry.hexsha
                 if b.is_trunk:
