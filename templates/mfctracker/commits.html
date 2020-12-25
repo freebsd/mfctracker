@@ -92,7 +92,7 @@ $( document ).ready(function() {
                              <div class="panel-body" id="note-text-{{commit.sha_abbr}}">{{note.text}}</div>
                              </div>
                          <a role="button" class="btn btn-default cgit" aria-label="cgit" href="{{ commit.cgit_url }}" target="_blank">cgit <span class="glyphicon glyphicon-new-window"></span></a>
-                         {% if user.svn_revision %}
+                         {% if commit.svn_revision %}
                          <a role="button" class="btn btn-default viewvc" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
                          {% endif %}
                          {% if user.is_authenticated %}
