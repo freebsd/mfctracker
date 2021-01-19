@@ -178,7 +178,7 @@ class Command(BaseCommand):
     def parse_mfc_entry(self, msg, commit_date):
         lines = msg.split('\n')
         for line in lines:
-            if re.match('^\s*mfc\s+after\s*:', line, flags=re.IGNORECASE):
+            if re.match('^\s*mfc(-|\s+)after\s*:', line, flags=re.IGNORECASE):
                 calendar = parsedatetime.Calendar()
                 mfc_after_st, parsed = calendar.parse(line, commit_date)
                 if parsed:

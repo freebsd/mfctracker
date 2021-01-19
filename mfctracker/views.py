@@ -138,7 +138,7 @@ def mfc_commit_message(hashes, user, summarized=False):
     commit_msg = None
     if len(hashes) > 0:
         commit_msg = ''
-        mfc_re = re.compile('^MFC\s+after:.*\n?', re.IGNORECASE | re.MULTILINE)
+        mfc_re = re.compile('^MFC(-|\s+)after:.*\n?', re.IGNORECASE | re.MULTILINE)
         for commit in commits:
             if summarized:
                 commit_msg = commit_msg + '\n' + commit.sha_abbr + ': '
