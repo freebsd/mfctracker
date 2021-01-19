@@ -41,10 +41,10 @@ urlpatterns = [
     url(r'^mfcbasket/add$', views.addrevision, name='addrevision'),
     url(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),
     url(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
-    url(r'^commit/(?P<revision>[0-9]+)/comment$', views.comment_commit, name='comment_commit'),
-    url(r'^commit/(?P<revision>[0-9]+)/fixdeps$', views.fix_commit_dependencies, name='fixdeps_commit'),
-    url(r'^commit/(?P<revision>[0-9]+)/ban$', views.add_do_not_merge, name='add_do_not_merge'),
-    url(r'^commit/(?P<revision>[0-9]+)/unban$', views.del_do_not_merge, name='del_do_not_merge'),
+    url(r'^commit/(?P<sha>[0-9a-f]+)/comment$', views.comment_commit, name='comment_commit'),
+    url(r'^commit/(?P<sha>[0-9a-f]+)/fixdeps$', views.fix_commit_dependencies, name='fixdeps_commit'),
+    url(r'^commit/(?P<sha>[0-9a-f]+)/ban$', views.add_do_not_merge, name='add_do_not_merge'),
+    url(r'^commit/(?P<sha>[0-9a-f]+)/unban$', views.del_do_not_merge, name='del_do_not_merge'),
     url('^', include('django.contrib.auth.urls')),
 ]
 

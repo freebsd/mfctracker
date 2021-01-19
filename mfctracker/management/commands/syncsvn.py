@@ -21,20 +21,35 @@
 #  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
-import urllib
-from datetime import date
+import svn.remote
+import json
+import parsedatetime
+import time
+import re
+from datetime import date, datetime, timedelta
+from collections import deque
 
-from django import template
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
 
-register = template.Library()
+from mfctracker.models import Commit, Branch, Change
+from mfctracker.utils import get_mfc_requirements, mergeinfo_ranges_to_set, parse_mergeinfo_prop
 
-@register.filter
-def do_not_merge(commit, user):
-    if user.is_anonymous():
-        return False
+class Command(BaseCommand):
+    help = 'Import new commits from SVN repo'
 
-    try:
-        return user.profile.do_not_merge.filter(sha=commit.sha).exists()
-    except ObjectDoesNotExist:
-        return False
+    def handle(self, *args, **options):
+        r = svn.remote.RemoteClient(settings.SVN_BASE_URL)
+        b = Branch.objects.get(name='STABLE-12')
+        props = r.properties(b.path)
+        mergeinfo_prop = props.get('svn:mergeinfo', None)
+        mergeinfo = parse_mergeinfo_prop(props['svn:mergeinfo'])
+        update_revisions = mergeinfo_ranges_to_set(mergeinfo['/head'])
+        for commit in Commit.objects.filter(svn_revision__in=update_revisions):
+            print (commit.svn_revision)
+            commit.merged_to.add(b)
+            commit.save()
+
+        return None

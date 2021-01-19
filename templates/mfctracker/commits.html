@@ -9,61 +9,61 @@ $( document ).ready(function() {
 
     $('#commentModal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget) // Button that triggered the modal
-      var revision = button.data('revision') // Extract info from data-* attributes
+      var sha = button.data('sha') // Extract info from data-* attributes
       var modal = $(this)
-      modal.find('label').text('Comment for r' + revision + ':')
+      modal.find('label').text('Comment for ' + sha + ':')
       // modal.find('.modal-body input').val(recipient)
       var text = modal.find('#text');
       var savecomment = modal.find('#savecomment');
       var deletecomment = modal.find('#deletecomment');
-      var note = $('#note-text-' + revision);
+      var note = $('#note-text-' + sha);
       $(text).val(($(note).text()));
 
       $(savecomment).off("click").click(function(e) {
           var comment = $(text).val();
-          MFC.updateComment(revision, comment, function (data) {
+          MFC.updateComment(sha, comment, function (data) {
               console.log('posted');
               $(note).text(comment);
-              $('.note-' + revision).removeClass('hide');
+              $('.note-' + sha).removeClass('hide');
               $(modal).modal('toggle')
           });
       });
 
       $(deletecomment).off("click").click(function(e) {
-          MFC.deleteComment(revision, function (data) {
+          MFC.deleteComment(sha, function (data) {
               console.log('deleted');
               $(note).text('');
-              $('.note-' + revision).addClass('hide');
+              $('.note-' + sha).addClass('hide');
               $(modal).modal('toggle')
           });
       });
     })
 
     $("button#confirm-ban").click(function() {
-        var revision =  $('span#ban-revision').text();
-        MFC.banCommit(revision, function (data) {
+        var sha =  $('span#ban-sha').text();
+        MFC.banCommit(sha, function (data) {
             location.reload();
         });
         $('div#confirm-ban').modal('toggle');
     });
 
     $("button#confirm-unban").click(function() {
-        var revision =  $('span#unban-revision').text();
-        MFC.unbanCommit(revision, function (data) {
+        var sha =  $('span#unban-sha').text();
+        MFC.unbanCommit(sha, function (data) {
             location.reload();
         });
         $('div#confirm-unban').modal('toggle');
     });
 
     $('.ban-button').each(function(index, element) {
-        var rev = $(element).data('revision');
+        var sha = $(element).data('sha');
         $(element).off("click").click(function(e) {
             if ($(element).hasClass('banned')) {
-                $('span#unban-revision').text(rev);
+                $('span#unban-sha').text(sha);
                 $('div#confirm-unban').modal({ backdrop: 'static', keyboard: false });
             }
             else {
-                $('span#ban-revision').text(rev);
+                $('span#ban-sha').text(sha);
                 $('div#confirm-ban').modal({ backdrop: 'static', keyboard: false });
             }
         })
@@ -74,30 +74,33 @@ $( document ).ready(function() {
         <table class="table table-hover" id="commits">
             {% for commit in commits %}
                     {% if current_branch %}
-                    <tr class="mfc{{ commit | mfc_state:current_branch }}" revision="{{ commit.revision }}">
+                    <tr class="mfc{{ commit | mfc_state:current_branch }}" sha="{{ commit.sha }}">
                     {% else %}
-                    <tr class="mfc" revision="{{ commit.revision }}">
+                    <tr class="mfc" sha="{{ commit.sha }}">
                     {% endif %}
-                    <td class="col-sm-1">r{{ commit.revision }}</td>
+                    <td class="col-sm-1">{{ commit.sha_abbr }}</td>
                     <td class="col-sm-1">{{ commit.author }}</td>
                     <td class="col-sm-2">{{ commit.date }}</td>
                      {% with note=commit|commit_note:request.user banned=commit|do_not_merge:request.user%}
-                     <td class="col-sm-7"><span class="summary" data-toggle="collapse" href="#more{{commit.revision}}" aria-expanded="false" aria-controls="more{{commit.revision}}">{{ commit.summary }} <i class="glyphicon glyphicon-comment {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment"></i></span>
+                     <td class="col-sm-7"><span class="summary" data-toggle="collapse" href="#more{{commit.sha_abbr}}" aria-expanded="false" aria-controls="more{{commit.sha_abbr}}">{{ commit.summary }} <i class="glyphicon glyphicon-comment {% if note is None %}hide{% endif %} note-{{commit.sha_abbr}}" id="comment"></i></span>
 
-                     <div class="collapse" id="more{{commit.revision}}">
+                     <div class="collapse" id="more{{commit.sha_abbr}}">
                          {% if commit.more|length > 0 %}
                          <pre>{{commit.more|urlize}}</pre>
                          {% endif %}
-                         <div class="panel panel-default {% if note is None %}hide{% endif %} note-{{commit.revision}}" id="comment-panel">
-                             <div class="panel-body" id="note-text-{{commit.revision}}">{{note.text}}</div>
+                         <div class="panel panel-default {% if note is None %}hide{% endif %} note-{{commit.sha_abbr}}" id="comment-panel">
+                             <div class="panel-body" id="note-text-{{commit.sha_abbr}}">{{note.text}}</div>
                              </div>
-                         <a role="button" class="btn btn-default viewvc pull-right" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
+                         <a role="button" class="btn btn-default cgit" aria-label="cgit" href="{{ commit.cgit_url }}" target="_blank">cgit <span class="glyphicon glyphicon-new-window"></span></a>
+                         {% if commit.svn_revision %}
+                         <a role="button" class="btn btn-default viewvc" aria-label="ViewVC" href="{{ commit.viewvc_url }}" target="_blank">ViewVC <span class="glyphicon glyphicon-new-window"></span></a>
+                         {% endif %}
                          {% if user.is_authenticated %}
-                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#commentModal" data-revision="{{commit.revision}}"><span class="glyphicon glyphicon-comment"></span> Comment</button>
+                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#commentModal" data-sha="{{commit.sha}}"><span class="glyphicon glyphicon-comment"></span> Comment</button>
 			 {% if banned %}
-                         <button type="button" class="btn btn-default ban-button banned" data-revision="{{commit.revision}}" aria-label="Move back to MFC list">Move to MFC list</button>
+                         <button type="button" class="btn btn-default ban-button banned" data-sha="{{commit.sha}}" aria-label="Move back to MFC list">Move to MFC list</button>
                          {% else %}
-                         <button type="button" class="btn btn-default ban-button" data-revision="{{commit.revision}}" aria-label="Mark as never MFC"><span class="glyphicon glyphicon-ban-circle"></span> Never MFC</button>
+                         <button type="button" class="btn btn-default ban-button" data-sha="{{commit.sha}}" aria-label="Mark as never MFC"><span class="glyphicon glyphicon-ban-circle"></span> Never MFC</button>
                          {% endif %}
                          {% endif %}
                     </div>

@@ -36,6 +36,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os.path as op
 import os
 import environ
+from pathlib import Path
 
 from django.utils.crypto import get_random_string
 
@@ -126,7 +127,9 @@ LOGIN_REDIRECT_URL = '/'
 
 SVN_EMAIL_DOMAIN = 'freebsd.org'
 SVN_BASE_URL = 'http://svn.freebsd.org/base'
+GIT_REPO = env.str('GIT_REPO', Path.home().joinpath("src"))
 VIEWVC_REVISION_URL = 'http://svnweb.freebsd.org/changeset/base/{revision}'
+CGIT_COMMIT_URL = 'https://cgit.freebsd.org/src/commit/?id={sha}'
 
 TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
 

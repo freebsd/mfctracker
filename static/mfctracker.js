@@ -8,14 +8,14 @@ MFC.isSameSet = function( arr1, arr2 ) {
       return  $( arr1 ).not( arr2 ).length === 0 && $( arr2 ).not( arr1 ).length === 0;  
 }
 
-MFC.addRevision = function(revision) {
-    $.post( "/mfcbasket/add", { 'revision': revision }, function (data) {
+MFC.addRevision = function(sha) {
+    $.post( "/mfcbasket/add", { 'sha': sha }, function (data) {
         MFC.updateBasket(data);
     });
 }
 
-MFC.delRevision = function(revision) {
-    $.post( "/mfcbasket/remove", { 'revision': revision }, function (data) {
+MFC.delRevision = function(sha) {
+    $.post( "/mfcbasket/remove", { 'sha': sha }, function (data) {
         MFC.updateBasket(data);
     });
 }
@@ -24,19 +24,19 @@ MFC.setupCommitActionButtons = function() {
     $("#commits tr").each(function(index, element) {
         var action = $(element).find("#action")[0];
         var icon = $(action).find(".glyphicon")[0];
-        var revision = $(element).attr('revision');
+        var sha = $(element).attr('sha');
         var inbasket = false;
-        if (MFC.basket.includes(revision)) {
+        if (MFC.basket.includes(sha)) {
             inbasket = true;
             $(icon).addClass('inbasket');
             $(action).off("click").click(function(e) {
-                MFC.delRevision(revision);
+                MFC.delRevision(sha);
             });
         }
         else {
             $(icon).removeClass('inbasket');
             $(action).off("click").click(function(e) {
-                MFC.addRevision(revision);
+                MFC.addRevision(sha);
             });
         }
 
@@ -76,30 +76,30 @@ MFC.fetchBasket = function() {
 MFC.setupCommitCommentButtons = function() {
     ("#commits tr").each(function(index, element) {
         var action = $(element).find("#comment")[0];
-        var revision = $(element).attr('revision');
+        var sha = $(element).attr('sha');
         $(action).off("click").click(function(e) {
-            MFC.addRevision(revision);
+            MFC.addRevision(sha);
         });
     })
 };
 
-MFC.updateComment = function(revision, text, success) {
-    $.post( "/commit/" + revision + "/comment", { 'text': text }, function (data) {
+MFC.updateComment = function(sha, text, success) {
+    $.post( "/commit/" + sha + "/comment", { 'text': text }, function (data) {
         success(data);
     });
 }
 
-MFC.deleteComment = function(revision, success) {
+MFC.deleteComment = function(sha, success) {
     $.ajax({
-        url: "/commit/" + revision + "/comment",
+        url: "/commit/" + sha + "/comment",
         type: 'DELETE',
         success: success
     });
 }
 
-MFC.fixDependencies = function(revision, success) {
+MFC.fixDependencies = function(sha, success) {
     $.ajax({
-        url: "/commit/" + revision + "/fixdeps",
+        url: "/commit/" + sha + "/fixdeps",
         type: 'POST',
         success: success
     });
@@ -113,17 +113,17 @@ MFC.generateShareToken = function(branch_id, success) {
     });
 }
 
-MFC.banCommit = function(revision, success) {
+MFC.banCommit = function(sha, success) {
     $.ajax({
-        url: "/commit/" + revision + "/ban",
+        url: "/commit/" + sha + "/ban",
         type: 'POST',
         success: success
     });
 }
 
-MFC.unbanCommit = function(revision, success) {
+MFC.unbanCommit = function(sha, success) {
     $.ajax({
-        url: "/commit/" + revision + "/unban",
+        url: "/commit/" + sha + "/unban",
         type: 'POST',
         success: success
     });

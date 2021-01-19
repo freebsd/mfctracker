@@ -3,9 +3,9 @@
   connection: local
   become: true
   vars:
-      ansible_python_interpreter: /usr/local/bin/python3.6
+      ansible_python_interpreter: /usr/local/bin/python3.7
       version_base: /usr/local/mfctracker
-      version: master
+      version: git
       app_path: "{{version_path}}/app"
       venv_path: "{{version_path}}/venv"
 

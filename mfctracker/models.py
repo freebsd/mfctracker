@@ -35,11 +35,11 @@ class Branch(models.Model):
     name = models.CharField(max_length=30, unique=True)
     path = models.CharField(max_length=128, unique=True)
     is_trunk = models.BooleanField(default=False)
-    mergeinfo = jsonfield.JSONField(default={})
     # Last imported revision
-    last_revision = models.IntegerField(default=1)
+    last_commit = models.CharField(max_length=64)
     # Branchpoint
-    branch_revision = models.IntegerField(default=1)
+    branch_commit = models.CharField(max_length=64)
+    branch_date = models.DateTimeField()
 
     @classmethod
     def create(cls, name, path):
@@ -56,7 +56,9 @@ class Branch(models.Model):
 
 class Commit(models.Model):
     """Single commit info"""
-    revision = models.IntegerField(primary_key=True)
+    sha = models.CharField(primary_key=True, max_length=64)
+    svn_revision = models.IntegerField(null=True)
+    commit_counter = models.IntegerField(null=True)
     author = models.CharField(max_length=30)
     date = models.DateTimeField()
     mfc_after = models.DateField(blank=True, null=True)
@@ -66,8 +68,8 @@ class Commit(models.Model):
     mfc_with = models.ManyToManyField("self", blank=True)
 
     @classmethod
-    def create(cls, revision, author, date, msg):
-        commit = cls(revision=revision, author=author, date=date, msg=msg)
+    def create(cls, sha, author, date, msg):
+        commit = cls(sha=sha, author=author, date=date, msg=msg)
         return commit
 
     @property
@@ -88,16 +90,23 @@ class Commit(models.Model):
 
     @property
     def viewvc_url(self):
-        return settings.VIEWVC_REVISION_URL.format(revision=self.revision)
+        return settings.VIEWVC_REVISION_URL.format(revision=self.svn_revision)
+
+    @property
+    def cgit_url(self):
+        return settings.CGIT_COMMIT_URL.format(sha=self.sha)
+
+    @property
+    def sha_abbr(self):
+        return self.sha[:8]
 
 class Change(models.Model):
     path = models.CharField(max_length=1024)
-    operation = models.CharField(max_length=8)
     commit = models.ForeignKey(Commit, on_delete=models.CASCADE, related_name='changes')
 
     @classmethod
-    def create(cls, commit, operation, path):
-        commit = cls(path=path, operation=operation, commit=commit)
+    def create(cls, commit, path):
+        commit = cls(path=path, commit=commit)
         return commit
 
 

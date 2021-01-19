@@ -1,9 +1,11 @@
 Vagrant.configure(2) do |config|
   config.vm.guest = :freebsd
-  config.vm.box = "freebsd/FreeBSD-12.0-RELEASE"
+  config.vm.box = "freebsd/FreeBSD-12.2-RELEASE"
   config.vm.boot_timeout = 600
   config.vm.synced_folder ".", "/app", nfs: true
   config.vm.synced_folder ".", "/vagrant", disabled: true
+  # requires vagrant-disksize plugin
+  config.disksize.size = '20GB'
   config.vm.base_mac = "080027D14C66"
   config.vm.network "private_network", ip: "192.168.50.4"
   config.vm.network "forwarded_port", guest: 8000, host: 8000,
@@ -18,7 +20,7 @@ Vagrant.configure(2) do |config|
   end
   config.ssh.shell = "sh"
   config.vm.provision "shell", inline: <<-SHELL
-    pkg install -y vim-console py36-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client ca_root_nss
+    pkg install -y vim-console py37-virtualenvwrapper postgresql96-server subversion p5-ack openldap-sasl-client ca_root_nss git-lite
     sysrc postgresql_enable=YES
     service postgresql initdb
     service postgresql start
@@ -35,6 +37,6 @@ Vagrant.configure(2) do |config|
     chown vagrant ~vagrant/.vimrc
     echo "setenv DJANGO_SETTINGS_MODULE mfctracker.settings.development" >> ~vagrant/.cshrc
     echo "source ~vagrant/.venv/mfctracker/bin/activate.csh" >> ~vagrant/.cshrc
-    su vagrant -c "pip install -r /app/requirements-dev.txt"
+    su vagrant -c "pip install -r /vagrant/requirements-dev.txt"
   SHELL
 end

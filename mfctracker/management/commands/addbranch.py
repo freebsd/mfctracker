@@ -21,7 +21,8 @@
 #  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
-import svn.remote
+from git import Repo
+from datetime import datetime, timezone
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -35,37 +36,40 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('-n', '--name', required=True, help='branch name')
         parser.add_argument('-p', '--path', required=True, help='branch path')
-        parser.add_argument('-b', '--branch-point', type=int, default=None, help='branch point revision')
+        parser.add_argument('-b', '--branch-point', type=str, default=None, help='branch point revision')
         parser.add_argument('-t', '--trunk', dest='trunk', action='store_true', help='flag this branch as trunk')
 
     def handle(self, *args, **options):
         branchpoint = options['branch_point']
         name = options['name']
         path = options['path'].strip('/')
-        path = '/' + path
         trunk = options['trunk']
-        if trunk:
-            try:
-                trunk_branch = Branch.trunk()
-                if trunk_branch.is_trunk:
-                    raise CommandError('Trunk branch already exists: {}'.format(trunk_branch.name))
-            except ObjectDoesNotExist:
-                pass
+        trunk_branch = None
+        try:
+            trunk_branch = Branch.trunk()
+        except ObjectDoesNotExist:
+            pass
+
+        if trunk and trunk_branch:
+            raise CommandError('Trunk branch already exists: {}'.format(trunk_branch.name))
+
+        repo = Repo(settings.GIT_REPO)
 
         if not branchpoint:
             try:
-                r = svn.remote.RemoteClient(settings.SVN_BASE_URL)
-                entries = list(r.log_default(rel_filepath=path, limit=1, revision_from=0, revision_to='HEAD', stop_on_copy=True))
-                if len(entries) != 1:
-                    raise CommandError('Invalid number of entries ({}) returned for branch point query'.format(len(entries)))
-                branchpoint = entries[0].revision
+                branchcommit = repo.merge_base('remotes/origin/' + trunk_branch.path, 'remotes/origin/' + path)
+                if len(branchcommit) != 1:
+                    raise Exception("merge_base yielded more than one commit")
+                branchpoint = branchcommit[0].hexsha
             except Exception as e:
-                raise CommandError('Failed to get branch point for branch: {}'.format(e.message))
+                raise CommandError('Failed to get branch point for branch {}: {}'.format(path, e))
 
         branch = Branch.create(name, path)
-        branch.branch_revision = branchpoint
+        branch.branch_commit = branchpoint
         branch.is_trunk = trunk
-        branch.last_revision = branchpoint - 1
+        commit = repo.commit(branchpoint)
+        branch.last_commit = commit.parents[0].hexsha
+        branch.branch_date = datetime.fromtimestamp(commit.committed_date, tz=timezone.utc)
 
         try:
             branch.save()
