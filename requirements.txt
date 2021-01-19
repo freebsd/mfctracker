@@ -1,4 +1,4 @@
-Django==1.11.24
+Django==1.11.29
 django-bootstrap3==8.2.2
 django-environ==0.4.3
 django-pytest==0.2.0
