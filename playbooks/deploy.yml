@@ -13,8 +13,7 @@
     - name: install packages
       pkgng: name={{item}} state=present
       with_items:
-        - subversion
-        - openldap-sasl-client
+        - openldap26-client
         - ca_root_nss
 
     - name: Get SHA1 for the version name
