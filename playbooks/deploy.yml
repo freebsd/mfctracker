@@ -16,6 +16,12 @@
         - openldap26-client
         - ca_root_nss
 
+    - name: git setup http proxy
+      git_config:
+        name: http.proxy
+        value: http://proxy.nyi.FreeBSD.org:3128
+        scope: global
+
     - name: Get SHA1 for the version name
       git:
         repo: https://github.com/freebsd/mfctracker.git
