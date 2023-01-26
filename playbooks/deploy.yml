@@ -5,7 +5,7 @@
   vars:
       ansible_python_interpreter: /usr/local/bin/python3.9
       version_base: /usr/local/mfctracker
-      version: git
+      version: master
       app_path: "{{version_path}}/app"
       venv_path: "{{version_path}}/venv"
 
@@ -18,7 +18,7 @@
 
     - name: Get SHA1 for the version name
       git:
-        repo: https://github.com/gonzoua/mfctracker.git
+        repo: https://github.com/freebsd/mfctracker.git
         version: "{{version}}"
         clone: no
       register: git_info
@@ -36,7 +36,7 @@
 
     - name: Checkout latest version of mfctracker source code
       git:
-        repo: https://github.com/gonzoua/mfctracker.git
+        repo: https://github.com/freebsd/mfctracker.git
         version: "{{version}}"
         dest: "{{app_path}}"
 
