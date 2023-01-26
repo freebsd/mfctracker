@@ -3,7 +3,7 @@
   connection: local
   become: true
   vars:
-      ansible_python_interpreter: /usr/local/bin/python3.7
+      ansible_python_interpreter: /usr/local/bin/python3.9
       version_base: /usr/local/mfctracker
       app_path: "{{version_base}}/latest/app"
       venv_path: "{{version_base}}/latest/venv"
@@ -15,9 +15,9 @@
         - nginx
         - uwsgi
         - git-lite
-        - py37-virtualenv
-        - py37-supervisor
-        - py37-psycopg2
+        - py39-virtualenv
+        - py39-supervisor
+        - py39-psycopg2
 
     - name: enable services
       service:
