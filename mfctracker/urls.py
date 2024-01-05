@@ -21,35 +21,35 @@
 #  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
-from django.conf.urls import include, url
 from django.conf import settings
+from django.urls import include, re_path
 
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^version/?$', views.get_version, name='version'),
-    url(r'^(?P<branch_id>[0-9]+)/$', views.branch, name='branch'),
-    url(r'^(?P<branch_id>[0-9]+)/setfilter$', views.setfilter, name='setfilter'),
-    url(r'^(?P<branch_id>[0-9]+)/newtoken$', views.generate_new_token, name='newtoken'),
-    url(r'^(?P<branch_id>[0-9]+)/mfc$', views.mfcbasket, name='mfcbasket'),
-    url(r'^(?P<branch_id>[0-9]+)/mfc/helper$', views.mfchelper, {'summarized': False}, name='mfchelper'),
-    url(r'^(?P<branch_id>[0-9]+)/mfc/helper/short$', views.mfchelper, {'summarized': True}, name='mfchelper'),
-    url(r'^(?P<branch_id>[0-9]+)/mfc/(?P<username>[a-z0-9]+)/(?P<token>.+)$', views.mfcshare, name='mfcshare'),
-    url(r'^never$', views.never_mfc, name='never_mfc'),
-    url(r'^mfcbasket/json$', views.basket, name='mfcbasket'),
-    url(r'^mfcbasket/add$', views.addrevision, name='addrevision'),
-    url(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),
-    url(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
-    url(r'^commit/(?P<sha>[0-9a-f]+)/comment$', views.comment_commit, name='comment_commit'),
-    url(r'^commit/(?P<sha>[0-9a-f]+)/fixdeps$', views.fix_commit_dependencies, name='fixdeps_commit'),
-    url(r'^commit/(?P<sha>[0-9a-f]+)/ban$', views.add_do_not_merge, name='add_do_not_merge'),
-    url(r'^commit/(?P<sha>[0-9a-f]+)/unban$', views.del_do_not_merge, name='del_do_not_merge'),
-    url('^', include('django.contrib.auth.urls')),
+    re_path(r'^$', views.index, name='index'),
+    re_path(r'^version/?$', views.get_version, name='version'),
+    re_path(r'^(?P<branch_id>[0-9]+)/$', views.branch, name='branch'),
+    re_path(r'^(?P<branch_id>[0-9]+)/setfilter$', views.setfilter, name='setfilter'),
+    re_path(r'^(?P<branch_id>[0-9]+)/newtoken$', views.generate_new_token, name='newtoken'),
+    re_path(r'^(?P<branch_id>[0-9]+)/mfc$', views.mfcbasket, name='mfcbasket'),
+    re_path(r'^(?P<branch_id>[0-9]+)/mfc/helper$', views.mfchelper, {'summarized': False}, name='mfchelper'),
+    re_path(r'^(?P<branch_id>[0-9]+)/mfc/helper/short$', views.mfchelper, {'summarized': True}, name='mfchelper'),
+    re_path(r'^(?P<branch_id>[0-9]+)/mfc/(?P<username>[a-z0-9]+)/(?P<token>.+)$', views.mfcshare, name='mfcshare'),
+    re_path(r'^never$', views.never_mfc, name='never_mfc'),
+    re_path(r'^mfcbasket/json$', views.basket, name='mfcbasket'),
+    re_path(r'^mfcbasket/add$', views.addrevision, name='addrevision'),
+    re_path(r'^mfcbasket/remove$', views.delrevision, name='delrevision'),
+    re_path(r'^mfcbasket/clear$', views.clearbasket, name='clearbasket'),
+    re_path(r'^commit/(?P<sha>[0-9a-f]+)/comment$', views.comment_commit, name='comment_commit'),
+    re_path(r'^commit/(?P<sha>[0-9a-f]+)/fixdeps$', views.fix_commit_dependencies, name='fixdeps_commit'),
+    re_path(r'^commit/(?P<sha>[0-9a-f]+)/ban$', views.add_do_not_merge, name='add_do_not_merge'),
+    re_path(r'^commit/(?P<sha>[0-9a-f]+)/unban$', views.del_do_not_merge, name='del_do_not_merge'),
+    re_path('^', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns += [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
+        re_path(r'^__debug__/', include(debug_toolbar.urls)),
     ]

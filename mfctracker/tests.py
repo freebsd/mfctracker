@@ -25,8 +25,8 @@ from datetime import datetime
 import pytest
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
+from django.urls import reverse
 
 from .utils import get_mfc_requirements, parse_mergeinfo_prop, mergeinfo_ranges_to_set
 from .models import Commit, CommitNote
