@@ -11,7 +11,7 @@
     - name: install packages
       pkgng: name={{item}} state=present
       with_items:
-        - postgresql13-server
+        - postgresql15-server
         - nginx
         - uwsgi-py39
         - git-lite
@@ -30,7 +30,7 @@
 
     - name: Initilize database
       command: /usr/local/etc/rc.d/postgresql initdb
-               creates=/var/db/postgres/data13/postgresql.conf
+               creates=/var/db/postgres/data15/postgresql.conf
 
     - name: Start database
       service:
