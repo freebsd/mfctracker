@@ -31,7 +31,7 @@ register = template.Library()
 
 @register.filter
 def do_not_merge(commit, user):
-    if user.is_anonymous():
+    if user.is_anonymous:
         return False
 
     try:

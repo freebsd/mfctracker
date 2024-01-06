@@ -31,7 +31,7 @@ register = template.Library()
 
 @register.filter
 def commit_note(commit, user):
-    if user.is_anonymous():
+    if user.is_anonymous:
         return None
 
     try:

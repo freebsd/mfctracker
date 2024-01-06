@@ -152,7 +152,7 @@ def mfc_commit_message(hashes, user, summarized=False):
                     if commit_msg:
                         commit_msg += '\n'
                     commit_msg = commit_msg + '\n' + str(commit.sha_abbr)
-                    if not user.is_anonymous():
+                    if not user.is_anonymous:
                         if user.username != commit.author:
                             commit_msg += ' by {}'.format(commit.author)
                     commit_msg += ':'
@@ -171,14 +171,14 @@ def mfc_commit_message(hashes, user, summarized=False):
     return commit_msg
 
 def _get_basket(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         basket = list(request.user.profile.mfc_basket)
     else:
         basket = request.session.get('basket', [])
     return basket
 
 def _set_basket(request, basket):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         request.user.profile.mfc_basket = basket
         request.user.profile.save()
     else:
@@ -213,7 +213,7 @@ def branch(request, branch_id):
     template = loader.get_template('mfctracker/index.html')
     trunk = Branch.trunk()
     query = trunk.commits.filter(date__gt=current_branch.branch_date)
-    if not request.user.is_anonymous():
+    if not request.user.is_anonymous:
        query = query.exclude(userprofile=request.user.profile)
 
     filters = request.session.get('filters', None)
@@ -411,7 +411,7 @@ def clearbasket(request):
 def comment_commit(request, sha):
     # can't use login_required because it's API call
     # @login_required redirects to login page with 302 result code
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         raise PermissionDenied
 
     commit = get_object_or_404(Commit, sha=sha)
@@ -470,7 +470,7 @@ def get_version(request):
 
 @require_POST
 def add_do_not_merge(request, sha):
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return HttpResponseBadRequest()
 
     if not sha:
@@ -484,7 +484,7 @@ def add_do_not_merge(request, sha):
 
 @require_POST
 def del_do_not_merge(request, sha):
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return HttpResponseBadRequest()
 
     if not sha:
@@ -498,7 +498,7 @@ def del_do_not_merge(request, sha):
 
 
 def never_mfc(request):
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return HttpResponseBadRequest()
 
     template = loader.get_template('mfctracker/nevermfc.html')
