@@ -2,11 +2,11 @@
 
 ## Overview
 
-This project is a web tool for tracking MFC (merges to stable branches) state of Subversion commits. For now it's supposed to be used by FreeBSD developers but can easily be adopted to any Sunbversion repository with organization simmilar to FreeBSD's one.
+This project is a web tool for tracking MFC (merges to stable branches) state of Git commits. For now it's supposed to be used by FreeBSD developers but can easily be adopted to any Git repository with organization simmilar to FreeBSD's one.
 
 ## Stack
 
-MFCTracker stack consists of Django, Python2, PostgreSQL. Production deployment is built using Nginx, uWSGI, and supervisord. The stack is generally OS-agnostic but automation scripts assume FreeBSD. Python2 was chosen because uWSGI on FreeBSD is built with Python2 support and I didn't want to generate custom packages for this project. 
+MFCTracker stack consists of Django, Python, PostgreSQL. Production deployment is built using Nginx, uWSGI, and supervisord. The stack is generally OS-agnostic but automation scripts assume FreeBSD. Python was chosen because uWSGI on FreeBSD is built with Python support and I didn't want to generate custom packages for this project.
 
 ## Development VM
 
@@ -18,7 +18,7 @@ To test logged-in user functionality set user password using `python manage.py c
 
 ## Server Setup
 
-MFCTracker uses Ansible for initial setup and deployment automation. To setup a server install vanilla FreeBSD 11 and run following commands:
+MFCTracker uses Ansible for initial setup and deployment automation. To setup a server install vanilla FreeBSD and run following commands:
 
 ```sh
 sudo pkg install git-lite sysutils/ansible
@@ -43,7 +43,8 @@ Now we need to create branches and import all commits. To create branches run
 ```sh
 git clone --config remote.origin.fetch='+refs/notes/*:refs/notes/*' https://git.freebsd.org/src.git ~/src
 mfctracker-manage addbranch --trunk --name HEAD --path main --branch-point 3ade9440198973efee3e6ae9636e1b147c72140b
-mfctracker-manage addbranch --name STABLE-12 --path stable/12
+# for each stable branch X
+mfctracker-manage addbranch --name STABLE-X --path stable/X
 ```
 
 To import commits run (this command may take some time to finish)
@@ -67,3 +68,11 @@ Run deployment playbook
 ansible-playbook -i localhost, playbooks/deploy.yml
 ```
 It will perform exactly the same action as for initial performance, the only difference you don't have to edit anything. Once this step is done you should have latest version of MFCTracker up and running.
+
+### Maintenance
+
+#### Adding a new branch X
+
+```sh
+mfctracker-manage addbranch --name STABLE-X --path stable/X
+```
